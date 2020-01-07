@@ -5,12 +5,10 @@ import config from './config';
 import * as vm from 'vm';
 import * as moment from 'moment';
 import * as md5 from 'md5';
-import Datastore from 'nedb';
 
 export default class JobService {
 
 	jobs_:Job[];
-	// = new Datastore({ filename: 'path/to/datafile' });
 
 	get jobs():Job[] {
 		return this.jobs_;

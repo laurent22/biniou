@@ -14,9 +14,11 @@
 		"strictFunctionTypes": true,
 		"sourceMap": true,
 		"outDir": "dist",
+		"rootDir": ".",
 	},
     "include": [
-        "src/**/*.ts",
-        "src/**/*.tsx",
+        "app/**/*",
+        "tools/**/*",
+        "migrations/**/*",
 	],
 }

@@ -2,21 +2,29 @@
   "name": "biniou",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/app/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js",
+    "tsc-watch": "npx tsc --watch --project tsconfig.json",
+    "generate-types": "node dist/tools/generate-types.js",
+    "db-migrate": "node dist/tools/db-migrate.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Laurent Cozic",
+  "license": "MIT",
   "devDependencies": {
+    "@rmp135/sql-ts": "^1.3.0",
     "@types/fs-extra": "^8.0.1",
-    "typescript": "^3.7.3"
+    "@types/md5": "^2.1.33",
+    "typescript": "^3.7.3",
+    "yargs": "^15.1.0"
   },
   "dependencies": {
-    "@types/md5": "^2.1.33",
     "fs-extra": "^8.1.0",
+    "knex": "^0.20.6",
     "md5": "^2.2.1",
     "moment": "^2.24.0",
-    "nedb": "^1.8.0"
+    "source-map-support": "^0.5.16",
+    "sqlite3": "^4.1.1"
   }
 }
