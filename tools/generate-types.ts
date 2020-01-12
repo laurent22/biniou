@@ -19,13 +19,13 @@ const config = {
 	'filename': './app/db',
 	'fileReplaceWithinMarker': '// AUTO-GENERATED-TYPES',
 	'singularTableNames': true,
-	// 'extends': {
-	// 	'main.events': 'WithDates, WithUuid',
+	'extends': {
+		'main.events': 'WithDates, WithUuid',
 	// 	// 'main.users': 'WithDates, WithUuid',
 	// 	// 'main.permissions': 'WithDates, WithUuid',
 	// 	// 'main.files': 'WithDates, WithUuid',
 	// 	// 'main.api_clients': 'WithDates, WithUuid',
-	// },
+	},
 };
 
 function insertContentIntoFile(filePath:string, markerOpen:string, markerClose:string, contentToInsert:string):void {
@@ -60,7 +60,7 @@ function createTypeString(table:any) {
 			if (['id'].includes(name)) continue;
 		}
 
-		// if (name === 'item_type') type = 'ItemType';
+		if (name === 'body_type') type = 'EventBodyType';
 		// if (table.name === 'files' && name === 'content') type = 'Buffer';
 
 		colStrings.push(`\t${name}?: ${type}`);

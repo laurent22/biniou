@@ -1,7 +1,6 @@
 import * as Knex from 'knex';
 
 const argv = require('yargs').argv;
-console.info('ARGBV', argv);
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 
@@ -40,21 +39,48 @@ interface DatabaseTables {
 	[key:string]: DatabaseTable
 }
 
+export interface WithDates {
+	updated_time?: number
+	created_time?: number
+}
+
+export interface WithUuid {
+	id?: string
+}
+
+export enum JobType {
+    JavaScript = "js",
+    Shell = "shell",
+}
+
+export enum EventBodyType {
+	String = 1,
+	Object = 2,
+};
+
+export interface Job {
+	id: string;
+	type: JobType;
+	state: any;
+	input?: string;
+	scriptFile?: string;
+	script?: string;
+}
+
 // AUTO-GENERATED-TYPES
 // Auto-generated using `npm run generate-types`
-export interface Event {
-	id?: string
+export interface Event extends WithDates, WithUuid {
 	hash?: string
-	body_type?: number
+	name?: string
+	body_type?: EventBodyType
 	body?: string
-	created_time?: number
-	updated_time?: number
 }
 
 export const databaseSchema:DatabaseTables = {
 	events: {
 		id: { type: 'string' },
 		hash: { type: 'string' },
+		name: { type: 'string' },
 		body_type: { type: 'number' },
 		body: { type: 'string' },
 		created_time: { type: 'number' },

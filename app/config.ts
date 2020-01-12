@@ -1,9 +1,17 @@
+import * as fs from 'fs-extra';
+
 class Config {
 
 	rootDir_:string;
 
-	load(rootDir:string) {
+	async load(rootDir:string = null) {
+		if (!rootDir) rootDir = this.defaultRootDir();
 		this.rootDir_ = rootDir;
+		await fs.mkdirp(this.rootDir_);
+	}
+
+	defaultRootDir():string {
+		return require('os').homedir() + '/.config/biniou';
 	}
 
 	get rootDir() {

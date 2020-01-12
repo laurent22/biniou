@@ -29,8 +29,9 @@ export async function up(knex: Knex): Promise<any> {
 	await knex.schema.createTable('events', function(table:Knex.CreateTableBuilder) {
 		table.string('id', 22).unique().primary().notNullable();
 		table.string('hash', 32).notNullable();
-		table.integer('body_type').notNullable();
-		table.string('body').notNullable();
+		table.string('name', 128).notNullable();
+		table.integer('body_type').defaultTo(1).notNullable();
+		table.string('body').defaultTo('').notNullable();
 		table.integer('created_time').notNullable();
 		table.integer('updated_time').notNullable();
 	});
