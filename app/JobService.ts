@@ -88,6 +88,11 @@ export default class JobService {
 					dispatchEvent: (name:string, body:any) => {
 						return jobService.dispatchEvent(job.id, name, body);
 					},
+					dispatchEvents: async(name:string, bodies:any[]) => {
+						for (let body of bodies) {
+							await jobService.dispatchEvent(job.id, name, body);
+						}
+					},
 					browser: async () => {
 						if (browser_) return browser_;
 						browser_ = await puppeteer.launch();
@@ -102,8 +107,16 @@ export default class JobService {
 
 				biniou.browserNewPage = async () => {
 					const b = await biniou.browser();
-					return b.newPage();
+					const page = await b.newPage();
+					return page;
 				};
+
+				biniou.gotoPageAndWaitForSelector = async(url:string, selector:string, callback:Function) => {
+					const page = await biniou.browserNewPage();
+					await page.goto(url);
+					await page.waitForSelector(selector);
+					return page.$$eval(selector, callback);
+				}
 
 				return {
 					console: console,
@@ -119,7 +132,7 @@ export default class JobService {
 				try {
 					await result.run();
 				} catch (error) {
-					console.error(error);
+					console.error('In script ' + scriptPath + "\n", error);
 				} finally {
 					await sandbox.biniou.browserClose();
 				}
@@ -151,8 +164,9 @@ export default class JobService {
 
 	async processJob(job:Job) {
 		if (!(await fs.pathExists(config.eventsDir))) await fs.mkdirp(config.eventsDir);
-		const inputJob = job.input ? this.jobById(job.input) : null;
-		const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
+		// const inputJob = job.input ? this.jobById(job.input) : null;
+		// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
+		const events = [];
 		await this.execScript(job, events);
 	}
 

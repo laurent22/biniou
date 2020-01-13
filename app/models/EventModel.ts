@@ -14,7 +14,7 @@ export default class EventModel extends BaseModel {
 
 	// }
 
-	async loadByHash(hash:string):Event {
+	async loadByHash(hash:string):Promise<Event> {
 		return this.db(this.tableName).select(this.defaultFields).where({ hash: hash }).first();
 	}
 

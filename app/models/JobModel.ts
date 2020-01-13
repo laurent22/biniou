@@ -8,7 +8,7 @@ export default class JobModel {
 		return config.jobsDir + '/' + id;
 	}
 
-	static async load(id:string):Job {
+	static async load(id:string):Promise<Job> {
 		const path = this.jobDir(id);
 		const o:any = await loadJsonFromFile(path + '/job.json');
 		const state:any = await loadJsonFromFile(path + '/state.json', false);
