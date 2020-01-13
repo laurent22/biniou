@@ -70,6 +70,7 @@ export interface Job {
 // AUTO-GENERATED-TYPES
 // Auto-generated using `npm run generate-types`
 export interface Event extends WithDates, WithUuid {
+	job_id?: string
 	hash?: string
 	name?: string
 	body_type?: EventBodyType
@@ -79,6 +80,7 @@ export interface Event extends WithDates, WithUuid {
 export const databaseSchema:DatabaseTables = {
 	events: {
 		id: { type: 'string' },
+		job_id: { type: 'string' },
 		hash: { type: 'string' },
 		name: { type: 'string' },
 		body_type: { type: 'number' },

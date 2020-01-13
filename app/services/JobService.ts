@@ -1,75 +1,22 @@
-import { loadJsonFromFile, basename, filename } from './fileUtils';
 import * as fs from 'fs-extra';
-import config from './config';
+import config from '../config';
 import * as vm from 'vm';
-import * as moment from 'moment';
-import * as md5 from 'md5';
 import * as puppeteer from 'puppeteer';
-import { Event, EventBodyType, Job } from './db';
-import EventModel from './models/EventModel';
+import { Job } from '../db';
+import BaseService from './BaseService';
+import EventService from './EventService';
 
-export default class JobService {
+export default class JobService extends BaseService {
 
-	// jobs_:Job[];
+	eventService_:EventService;
 
-	// get jobs():Job[] {
-	// 	return this.jobs_;
-	// }
+	constructor(eventService:EventService) {
+		super();
+		this.eventService_ = eventService;
+	}
 
-	// jobDir(name:string):string {
-	// 	return config.jobsDir + '/' + name;
-	// }
-
-	// async loadJob(name:string):Promise<Job> {
-	// 	const path = this.jobDir(name);
-	// 	return Job.loadJobFromDir(path);
-	// }
-
-	// async loadJobs() {
-	// 	const folders = await fs.readdir(config.jobsDir);
-	// 	const jobs = [];
-	// 	for (const folder of folders) {
-	// 		const folderPath = config.jobsDir + '/' + folder;
-	// 		const f = await fs.stat(folderPath);
-	// 		if (!f.isDirectory()) continue;
-	// 		jobs.push(await Job.loadJobFromDir(folderPath));
-	// 	}
-	// 	this.jobs_ = jobs;
-	// }
-
-	// jobById(id:string):Job {
-	// 	for (const job of this.jobs) {
-	// 		if (job.id === id) return job;
-	// 	}
-	// 	throw new Error('Could not find job with ID: ' + id);
-	// }
-
-	async dispatchEvent(jobId:string, eventName:string, eventBody:any, options:any = {}) {
-		options = Object.assign({
-			allowDuplicates: false,
-		}, options);
-
-		const bodyType:EventBodyType = typeof eventBody === 'string' ? EventBodyType.String : EventBodyType.Object;
-		const eventBodySerialized:string = bodyType === EventBodyType.String ? eventBody : JSON.stringify(eventBody)
-		const hash = md5(escape(eventBodySerialized));
-		
-		const eventModel= new EventModel(); 
-		
-		const existingEvent = await eventModel.loadByHash(hash);		
-		if (existingEvent) return;
-
-		const now = Date.now();
-
-		const event:Event = {
-			name: eventName,
-			body_type: bodyType,
-			body: eventBodySerialized,
-			created_time: now,
-			updated_time: now,
-			hash: hash,
-		};
-
-		await eventModel.save(event);
+	get eventService():EventService {
+		return this.eventService_;
 	}
 	
 	async execScript(job:Job, events:any[]):Promise<string> {
@@ -81,16 +28,16 @@ export default class JobService {
 			const scriptPath = config.jobDir(job.id) + '/' + scriptFile;
 			const scriptContent = (await fs.readFile(scriptPath)).toString();
 
-			const sandbox = (function(jobService:JobService) {
+			const sandbox = (function(that:JobService) {
 				let browser_:puppeteer.Browser = null;
 
 				const biniou:any = {
-					dispatchEvent: (name:string, body:any) => {
-						return jobService.dispatchEvent(job.id, name, body);
+					dispatchEvent: (name:string, body:any, options:any) => {
+						return that.eventService.dispatchEvent(job.id, name, body, options);
 					},
-					dispatchEvents: async(name:string, bodies:any[]) => {
+					dispatchEvents: async(name:string, bodies:any[], options:any) => {
 						for (let body of bodies) {
-							await jobService.dispatchEvent(job.id, name, body);
+							await that.eventService.dispatchEvent(job.id, name, body, options);
 						}
 					},
 					browser: async () => {
@@ -132,7 +79,7 @@ export default class JobService {
 				try {
 					await result.run();
 				} catch (error) {
-					console.error('In script ' + scriptPath + "\n", error);
+					this.logger.error('In script ' + scriptPath + "\n", error);
 				} finally {
 					await sandbox.biniou.browserClose();
 				}

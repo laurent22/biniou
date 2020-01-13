@@ -1,7 +1,7 @@
 require('source-map-support').install();
 
-import JobService from '../JobService';
 import JobModel from '../models/JobModel';
+import services from '../services';
 
 export default {
 	command: () => 'run <job-id>',
@@ -17,7 +17,6 @@ export default {
 	run: async (argv:any) => {
 		const jobId = argv.jobId;
 		const job = await JobModel.load(jobId);
-		const jobService = new JobService();
-		await jobService.processJob(job);
+		await services.jobService.processJob(job);
 	},
 };
