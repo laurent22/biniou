@@ -9,7 +9,8 @@
     "tsc-watch": "npx tsc --watch --project tsconfig.json",
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
-    "db-migrate": "node dist/tools/db-migrate.js"
+    "db-migrate": "node dist/tools/db-migrate.js",
+    "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
   },
   "author": "Laurent Cozic",
   "license": "MIT",
@@ -22,6 +23,7 @@
     "typescript": "^3.7.3"
   },
   "dependencies": {
+    "cron-parser": "^2.13.0",
     "fs-extra": "^8.1.0",
     "knex": "^0.20.6",
     "md5": "^2.2.1",

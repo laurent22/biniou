@@ -16,7 +16,8 @@ export default {
 	},
 	run: async (argv:any) => {
 		const jobId = argv.jobId;
-		const job = await JobModel.load(jobId);
+		const jobModel = new JobModel();
+		const job = await jobModel.load(jobId);
 		await services.jobService.processJob(job);
 	},
 };

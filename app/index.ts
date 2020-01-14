@@ -4,6 +4,12 @@ import config from './config';
 import * as yargs from 'yargs';
 
 import commandRun from './commands/run';
+import services from './services';
+
+async function exitProcess(code:number) {
+	await services.eventService.waitForDispatches();
+	process.exit(code);
+}
 
 async function main() {
 	await config.load();
@@ -18,10 +24,10 @@ async function main() {
 			await commandRun.run(argv);
 		} catch (error) {
 			console.error(error);
-			process.exit(1);
+			await exitProcess(1);
 		}
 
-		process.exit(0);
+		await exitProcess(0);
 	});
 
 	yargs.help();
@@ -31,5 +37,5 @@ async function main() {
 
 main().catch(error => {
 	console.error(error);
-	process.exit(1);
+	return exitProcess(1);
 });

@@ -5,6 +5,7 @@ import * as puppeteer from 'puppeteer';
 import { Job } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
+import JobModel from '../models/JobModel';
 
 export default class JobService extends BaseService {
 
@@ -74,15 +75,21 @@ export default class JobService extends BaseService {
 			vm.createContext(sandbox);
 		
 			const result = vm.runInContext(scriptContent, sandbox);
-
+			
 			if (result.run) {
+				const jobModel = new JobModel();
+				await jobModel.saveState(job.state.id, { last_started: Date.now() });
+				
 				try {
+					this.logger.info('Starting job: ' + job.id);
 					await result.run();
 				} catch (error) {
 					this.logger.error('In script ' + scriptPath + "\n", error);
-				} finally {
-					await sandbox.biniou.browserClose();
 				}
+				
+				await sandbox.biniou.browserClose();
+				await jobModel.saveState(job.state.id, { last_finished: Date.now() });
+				this.logger.info('Finished job: ' + job.id);
 			}
 		
 			for (const event of events) {

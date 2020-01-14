@@ -53,6 +53,11 @@ export enum JobType {
     Shell = "shell",
 }
 
+export enum JobTrigger {
+    Cron = "cron",
+    Event = "event",
+}
+
 export enum EventBodyType {
 	String = 1,
 	Object = 2,
@@ -61,7 +66,9 @@ export enum EventBodyType {
 export interface Job {
 	id: string;
 	type: JobType;
-	state: any;
+	trigger?: JobTrigger,
+	triggerSpec?: string,
+	state: JobState;
 	input?: string;
 	scriptFile?: string;
 	script?: string;
@@ -77,6 +84,15 @@ export interface Event extends WithDates, WithUuid {
 	body?: string
 }
 
+export interface JobState {
+	id?: string
+	job_id?: string
+	last_started?: number
+	last_finished?: number
+	created_time?: number
+	updated_time?: number
+}
+
 export const databaseSchema:DatabaseTables = {
 	events: {
 		id: { type: 'string' },
@@ -85,6 +101,14 @@ export const databaseSchema:DatabaseTables = {
 		name: { type: 'string' },
 		body_type: { type: 'number' },
 		body: { type: 'string' },
+		created_time: { type: 'number' },
+		updated_time: { type: 'number' },
+	},
+	job_states: {
+		id: { type: 'string' },
+		job_id: { type: 'string' },
+		last_started: { type: 'number' },
+		last_finished: { type: 'number' },
 		created_time: { type: 'number' },
 		updated_time: { type: 'number' },
 	},

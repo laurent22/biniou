@@ -1,9 +1,8 @@
-import db, { WithDates, WithUuid, Event, Job, databaseSchema } from '../db';
+import db, { WithDates, WithUuid, Event, Job, JobState, databaseSchema } from '../db';
 import * as Knex from 'knex';
 import { transactionHandler } from '../utils/dbUtils';
 import uuidgen from '../utils/uuidgen';
 import { ErrorUnprocessableEntity, ErrorBadRequest } from '../utils/errors';
-// import cache from '../utils/cache';
 	
 export interface ModelOptions {
 
@@ -73,7 +72,7 @@ export default abstract class BaseModel {
 		return this.db(this.tableName).select(...this.defaultFields);
 	}
 
-	async fromApiInput(object:Event | Job):Promise<Event | Job> {
+	async fromApiInput(object:Event | Job | JobState):Promise<Event | Job | JobState> {
 		return object;
 	}
 
@@ -81,18 +80,18 @@ export default abstract class BaseModel {
 		return { ...object };
 	}
 
-	async validate(object:Event | Job, options:ValidateOptions = {}):Promise<Event | Job> {
+	async validate(object:Event | Job | JobState, options:ValidateOptions = {}):Promise<Event | Job | JobState> {
 		if (!options.isNew && !(object as WithUuid).id) throw new ErrorUnprocessableEntity('id is missing');
 		return object;
 	}
 
-	async isNew(object:Event | Job, options:SaveOptions):Promise<boolean> {
+	async isNew(object:Event | Job | JobState, options:SaveOptions):Promise<boolean> {
 		if (options.isNew === false) return false;
 		if (options.isNew === true) return true;
 		return !(object as WithUuid).id;
 	}
 
-	async save(object:Event | Job, options:SaveOptions = {}):Promise<Event | Job> {
+	async save(object:Event | Job | JobState, options:SaveOptions = {}):Promise<Event | Job | JobState> {
 		if (!object) throw new Error('Object cannot be empty');
 
 		const toSave = Object.assign({}, object);
@@ -130,7 +129,7 @@ export default abstract class BaseModel {
 		return toSave;
 	}
 
-	async load(id:string):Promise<Event | Job> {
+	async load(id:string):Promise<Event | Job | JobState> {
 		if (!id) throw new Error('id cannot be empty');
 
 		return this.db(this.tableName).select(this.defaultFields).where({ id: id }).first();
