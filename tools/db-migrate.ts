@@ -1,4 +1,4 @@
-//require('app-module-path').addPath(`${__dirname}/..`);
+// require('app-module-path').addPath(`${__dirname}/..`);
 require('source-map-support').install();
 
 import db, { dbConfig } from '../app/db';

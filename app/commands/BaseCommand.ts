@@ -2,7 +2,7 @@ export default abstract class BaseCommand {
 
 	commandName() {
 		const splitted = this.command().split(' ');
-		if (!splitted.length) throw new Error('Invalid command: ' + this.command());
+		if (!splitted.length) throw new Error(`Invalid command: ${this.command()}`);
 		return splitted[0];
 	}
 

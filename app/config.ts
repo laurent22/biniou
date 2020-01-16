@@ -24,8 +24,8 @@ class Config {
 
 	private defaultRootDir():string {
 		let dirname = 'biniou';
-		if (this.env !== 'prod') dirname += '-' + this.env;
-		return require('os').homedir() + '/.config/' + dirname;
+		if (this.env !== 'prod') dirname += `-${this.env}`;
+		return `${require('os').homedir()}/.config/${dirname}`;
 	}
 
 	get rootDir() {
@@ -33,23 +33,23 @@ class Config {
 	}
 
 	get dbFilePath() {
-		return this.rootDir + '/database.sqlite';
+		return `${this.rootDir}/database.sqlite`;
 	}
 
 	jobDir(jobId:string):string {
-		return this.jobsDir + '/' + jobId;
+		return `${this.jobsDir}/${jobId}`;
 	}
 
 	jobEventsDir(jobId:string):string {
-		return this.eventsDir + '/' + jobId;
+		return `${this.eventsDir}/${jobId}`;
 	}
 
 	get jobsDir() {
-		return this.rootDir + '/jobs';
+		return `${this.rootDir}/jobs`;
 	}
 
 	get eventsDir() {
-		return this.rootDir + '/events';
+		return `${this.rootDir}/events`;
 	}
 
 }

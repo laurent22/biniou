@@ -30,16 +30,16 @@ function setupCommands():any {
 	}
 
 	yargs.option('env', {
-        default: 'prod',
+		default: 'prod',
 		type: 'string',
 		choices: ['dev', 'prod'],
 		hidden: true,
-	})
+	});
 
 	yargs.option('db-config-filename', {
 		type: 'string',
 		hidden: true,
-	})
+	});
 
 	yargs.help();
 
@@ -71,7 +71,7 @@ async function main() {
 
 	if (!selectedCommand) {
 		const help = await showHelp();
-		throw new Error('Command name is required\n\n' + help);
+		throw new Error(`Command name is required\n\n${help}`);
 	}
 
 	await selectedCommand.run(argv);

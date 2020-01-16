@@ -19,14 +19,14 @@ export default class JobService extends BaseService {
 	get eventService():EventService {
 		return this.eventService_;
 	}
-	
+
 	async execScript(job:Job, events:any[]):Promise<string> {
 		if (job.type === 'shell') {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
 		} else if (job.type === 'js') {
 			const scriptFile = job.scriptFile ? job.scriptFile : 'index.js';
-			const scriptPath = config.jobDir(job.id) + '/' + scriptFile;
+			const scriptPath = `${config.jobDir(job.id)}/${scriptFile}`;
 			const scriptContent = (await fs.readFile(scriptPath)).toString();
 
 			const sandbox = (function(that:JobService) {
@@ -36,7 +36,7 @@ export default class JobService extends BaseService {
 					dispatchEvent: (name:string, body:any, options:any) => {
 						return that.eventService.dispatchEvent(job.id, name, body, options);
 					},
-					dispatchEvents: async(name:string, bodies:any[], options:any) => {
+					dispatchEvents: async (name:string, bodies:any[], options:any) => {
 						for (let body of bodies) {
 							await that.eventService.dispatchEvent(job.id, name, body, options);
 						}
@@ -46,7 +46,7 @@ export default class JobService extends BaseService {
 						browser_ = await puppeteer.launch();
 						return browser_;
 					},
-					browserClose: async() => {
+					browserClose: async () => {
 						if (!browser_) return;
 						await browser_.close();
 						browser_ = null;
@@ -59,39 +59,39 @@ export default class JobService extends BaseService {
 					return page;
 				};
 
-				biniou.gotoPageAndWaitForSelector = async(url:string, selector:string, callback:Function) => {
+				biniou.gotoPageAndWaitForSelector = async (url:string, selector:string, callback:Function) => {
 					const page = await biniou.browserNewPage();
 					await page.goto(url);
 					await page.waitForSelector(selector);
 					return page.$$eval(selector, callback);
-				}
+				};
 
 				return {
 					console: console,
 					biniou: biniou,
 				};
 			}(this));
-		
+
 			vm.createContext(sandbox);
-		
+
 			const result = vm.runInContext(scriptContent, sandbox);
-			
+
 			if (result.run) {
 				const jobModel = new JobModel();
 				await jobModel.saveState(job.state.id, { last_started: Date.now() });
-				
+
 				try {
-					this.logger.info('Starting job: ' + job.id);
+					this.logger.info(`Starting job: ${job.id}`);
 					await result.run();
 				} catch (error) {
-					this.logger.error('In script ' + scriptPath + "\n", error);
+					this.logger.error(`In script ${scriptPath}\n`, error);
 				}
-				
+
 				await sandbox.biniou.browserClose();
 				await jobModel.saveState(job.state.id, { last_finished: Date.now() });
-				this.logger.info('Finished job: ' + job.id);
+				this.logger.info(`Finished job: ${job.id}`);
 			}
-		
+
 			for (const event of events) {
 				await result.handleEvent(event);
 			}

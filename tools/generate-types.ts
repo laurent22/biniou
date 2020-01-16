@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 
 const dbFilePath:string = `${__dirname}/../../app/db.ts`;
 
-const nameCasing:"pascal" | "camel" = 'pascal';
+const nameCasing:'pascal' | 'camel' = 'pascal';
 
 const config = {
 	'dialect': 'sqlite3',
@@ -15,7 +15,7 @@ const config = {
 	'useNullAsDefault': true,
 	'excludedTables': ['main.knex_migrations', 'main.knex_migrations_lock', 'main.android_metadata'],
 	'tableNameCasing': nameCasing,
-	"interfaceNameFormat": "${table}",
+	'interfaceNameFormat': '${table}',
 	'filename': './app/db',
 	'fileReplaceWithinMarker': '// AUTO-GENERATED-TYPES',
 	'singularTableNames': true,
@@ -113,7 +113,7 @@ function execCommand(command:string, options:any = null) {
 			}
 		});
 	});
-};
+}
 
 async function main() {
 

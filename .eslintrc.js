@@ -18,7 +18,8 @@ module.exports = {
 		// -------------------------------
 		// Code correctness
 		// -------------------------------
-		"no-unused-vars": "error",
+		// This is handled by TypeScript:
+		"no-unused-vars": 0,
 		"no-constant-condition": 0,
 		"no-prototype-builtins": 0,
 		// This error is always a false positive so far since it detects

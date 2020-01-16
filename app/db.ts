@@ -49,19 +49,19 @@ export interface WithUuid {
 }
 
 export enum JobType {
-    JavaScript = "js",
-    Shell = "shell",
+    JavaScript = 'js',
+    Shell = 'shell',
 }
 
 export enum JobTrigger {
-    Cron = "cron",
-    Event = "event",
+    Cron = 'cron',
+    Event = 'event',
 }
 
 export enum EventBodyType {
 	String = 1,
 	Object = 2,
-};
+}
 
 export interface Job {
 	id: string;

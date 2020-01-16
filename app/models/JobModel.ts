@@ -1,19 +1,19 @@
-import { Job, JobTrigger, JobState } from "../db";
+import { Job, JobTrigger, JobState } from '../db';
 import { loadJsonFromFile, basename } from '../fileUtils';
 import JobStateModel from './JobStateModel';
 import config from '../config';
-import * as fs from 'fs-extra'
+import * as fs from 'fs-extra';
 const cronParser = require('cron-parser');
 
 export default class JobModel {
 
 	jobDir(id:string):string {
-		return config.jobsDir + '/' + id;
+		return `${config.jobsDir}/${id}`;
 	}
 
 	async load(id:string):Promise<Job> {
 		const path = this.jobDir(id);
-		const o:any = await loadJsonFromFile(path + '/job.json');
+		const o:any = await loadJsonFromFile(`${path}/job.json`);
 
 		const job:Job = {
 			id: basename(path),
@@ -32,9 +32,9 @@ export default class JobModel {
 
 	async all():Promise<Job[]> {
 		const output = [];
-		const dirs = await fs.readdir(config.jobsDir)
+		const dirs = await fs.readdir(config.jobsDir);
 		for (const dir of dirs) {
-			const stat = await fs.stat(config.jobsDir + '/' + dir);
+			const stat = await fs.stat(`${config.jobsDir}/${dir}`);
 			if (!stat.isDirectory()) continue;
 			const job = await this.load(dir);
 			output.push(job);
@@ -66,7 +66,7 @@ export default class JobModel {
 			return interval.prev().toDate();
 		}
 
-		throw new Error('Unsupported job trigger: ' + job.trigger);
+		throw new Error(`Unsupported job trigger: ${job.trigger}`);
 	}
 
 	nextIterationDate(job:Job):Date {
@@ -75,7 +75,7 @@ export default class JobModel {
 			return interval.next().toDate();
 		}
 
-		throw new Error('Unsupported job trigger: ' + job.trigger);
+		throw new Error(`Unsupported job trigger: ${job.trigger}`);
 	}
 
 	// Finds jobs that have not been started when they should have (eg. because the service was not running).
@@ -84,7 +84,7 @@ export default class JobModel {
 		for (const job of jobs) {
 			const lastRunDate = job.state.last_started;
 			const shouldHaveRanDate = this.previousIterationDate(job);
-			if (lastRunDate < shouldHaveRanDate.getTime()) output.push(job);			
+			if (lastRunDate < shouldHaveRanDate.getTime()) output.push(job);
 		}
 		return output;
 	}

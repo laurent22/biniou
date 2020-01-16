@@ -1,5 +1,5 @@
-import BaseModel from "./BaseModel";
-import { JobState } from "../db";
+import BaseModel from './BaseModel';
+import { JobState } from '../db';
 
 export default class JobStateModel extends BaseModel {
 

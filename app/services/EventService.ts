@@ -1,7 +1,7 @@
-import BaseService from "./BaseService";
-import { Event, EventBodyType } from "../db";
-import md5 = require("md5");
-import EventModel from "../models/EventModel";
+import BaseService from './BaseService';
+import { Event, EventBodyType } from '../db';
+import md5 = require('md5');
+import EventModel from '../models/EventModel';
 
 export default class EventService extends BaseService {
 
@@ -25,13 +25,13 @@ export default class EventService extends BaseService {
 
 		try {
 			const bodyType:EventBodyType = typeof eventBody === 'string' ? EventBodyType.String : EventBodyType.Object;
-			const eventBodySerialized:string = bodyType === EventBodyType.String ? eventBody : JSON.stringify(eventBody)
+			const eventBodySerialized:string = bodyType === EventBodyType.String ? eventBody : JSON.stringify(eventBody);
 			const hash = md5(escape(eventBodySerialized));
-			
-			const eventModel = new EventModel(); 
-			
+
+			const eventModel = new EventModel();
+
 			if (!options.allowDuplicates) {
-				const existingEvent = await eventModel.loadByHash(hash);		
+				const existingEvent = await eventModel.loadByHash(hash);
 				if (existingEvent) return;
 			}
 
@@ -52,7 +52,7 @@ export default class EventService extends BaseService {
 			this.dispatchCount_--;
 			throw error;
 		}
-		
+
 		this.dispatchCount_--;
 	}
 

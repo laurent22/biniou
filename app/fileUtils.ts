@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 
 export async function loadJsonFromFile(path:string, mustExist:boolean = true):Promise<any> {
 	if (!(await fs.pathExists(path))) {
-		if (mustExist) throw new Error('File not found: ' + path);
+		if (mustExist) throw new Error(`File not found: ${path}`);
 		return null;
 	}
 
@@ -12,7 +12,7 @@ export async function loadJsonFromFile(path:string, mustExist:boolean = true):Pr
 	try {
 		return JSON.parse(fileContent.toString());
 	} catch (error) {
-		throw new Error('Could not parse JSON file: ' + path + ': ' + error.message)	
+		throw new Error(`Could not parse JSON file: ${path}: ${error.message}`);
 	}
 }
 
@@ -46,4 +46,4 @@ export async function execCommand(command:string):Promise<string> {
 			}
 		});
 	});
-};
+}

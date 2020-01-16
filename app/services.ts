@@ -1,12 +1,12 @@
-import EventService from "./services/EventService";
-import Logger, {TargetType} from "./utils/Logger";
-import JobService from "./services/JobService";
+import EventService from './services/EventService';
+import Logger, {TargetType} from './utils/Logger';
+import JobService from './services/JobService';
 
 class Services {
 
 	logger_:Logger;
 	jobService_:JobService;
-	eventService_:EventService;	
+	eventService_:EventService;
 
 	get logger():Logger {
 		if (!this.logger_) {
@@ -38,4 +38,4 @@ class Services {
 }
 
 const services = new Services();
-export default services; 
+export default services;

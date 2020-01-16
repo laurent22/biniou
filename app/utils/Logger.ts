@@ -1,4 +1,4 @@
-import services from "../services";
+import services from '../services';
 
 const moment = require('moment');
 
@@ -100,8 +100,8 @@ export default class Logger {
 				const consoleObj = target.console ? target.console : console;
 				consoleObj[fn](line + this.objectsToString(...object));
 			} else if (target.type === TargetType.File) {
-				//let serializedObject = this.objectsToString(...object);
-				//Logger.fsDriver().appendFileSync(target.path, `${line + serializedObject}\n`);
+				// let serializedObject = this.objectsToString(...object);
+				// Logger.fsDriver().appendFileSync(target.path, `${line + serializedObject}\n`);
 			} else if (target.type === TargetType.EventLog) {
 				services.eventService.dispatchEvent('__biniou__', 'log', {
 					level: level,
@@ -130,7 +130,7 @@ export default class Logger {
 		if (s == 'warn') return LogLevel.Warn;
 		if (s == 'info') return LogLevel.Info;
 		if (s == 'debug') return LogLevel.Debug;
-		throw new Error('Unknown log level: ' + s);
+		throw new Error(`Unknown log level: ${s}`);
 	}
 
 	static levelIdToString(id:LogLevel):string {
@@ -139,7 +139,7 @@ export default class Logger {
 		if (id == LogLevel.Warn) return 'warn';
 		if (id == LogLevel.Info) return 'info';
 		if (id == LogLevel.Debug) return 'debug';
-		throw new Error('Unknown level ID: ' + id);
+		throw new Error(`Unknown level ID: ${id}`);
 	}
 
 	static levelIds():LogLevel[] {
