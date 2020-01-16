@@ -2,9 +2,9 @@ import * as Knex from 'knex';
 
 const argv = require('yargs').argv;
 
-const nodeEnv = process.env.NODE_ENV || 'development';
+const env = argv.env ? argv.env : 'prod';
 
-let dbFilename = `db-${nodeEnv}.sqlite`;
+let dbFilename = `db-${env}.sqlite`;
 if (argv.dbConfigFilename) dbFilename = argv.dbConfigFilename;
 
 const dbConfig_ = {
@@ -15,8 +15,8 @@ const dbConfig_ = {
 	useNullAsDefault: true,
 	// Allow propery stack traces in case of an error, however
 	// it has a small performance overhead so only enable in testing and dev
-	asyncStackTraces: nodeEnv == 'development' || nodeEnv === 'testing',
-	// debug: nodeEnv == 'development' || nodeEnv === 'testing',
+	asyncStackTraces: env == 'development' || env === 'testing',
+	// debug: env == 'development' || env === 'testing',
 };
 
 let knex:Knex = require('knex')(dbConfig_);
