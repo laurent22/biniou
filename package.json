@@ -4,13 +4,25 @@
   "description": "",
   "main": "dist/app/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "linter": "./node_modules/.bin/eslint --fix --ext .js --ext .jsx --ext .ts --ext .tsx",
+    "linter-ci": "./node_modules/.bin/eslint --ext .js --ext .jsx --ext .ts --ext .tsx",
     "start": "node dist/index.js",
     "tsc-watch": "npx tsc --watch --project tsconfig.json",
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
     "db-migrate": "node dist/tools/db-migrate.js",
     "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npm run linter",
+      "git add"
+    ]
   },
   "author": "Laurent Cozic",
   "license": "MIT",
@@ -20,6 +32,11 @@
     "@types/md5": "^2.1.33",
     "@types/puppeteer": "^2.0.0",
     "@types/yargs": "^13.0.4",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "husky": "^4.0.10",
+    "lint-staged": "^9.5.0",
     "typescript": "^3.7.3"
   },
   "dependencies": {
