@@ -15,13 +15,20 @@ const dbConfig_ = {
 	useNullAsDefault: true,
 	// Allow propery stack traces in case of an error, however
 	// it has a small performance overhead so only enable in testing and dev
-	asyncStackTraces: env == 'development' || env === 'testing',
-	// debug: env == 'development' || env === 'testing',
+	asyncStackTraces: env == 'dev' || env === 'testing',
+	// debug: env == 'dev' || env === 'testing',
 };
 
-let knex:Knex = require('knex')(dbConfig_);
+let db_:Knex = null;
 
-export default knex;
+export function setupDatabase(config:any = null) {
+	db_ = require('knex')(Object.assign({}, dbConfig_, config));
+}
+
+export default function():Knex {
+	if (!db_) throw new Error('Database has not been setup!');
+	return db_;
+}
 
 export function dbConfig() {
 	return dbConfig_;

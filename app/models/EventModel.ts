@@ -1,7 +1,5 @@
-import db, { Event } from '../db';
-import config from '../config';
-import uuidgen from '../utils/uuidgen';
-import BaseModel, { ModelOptions } from './BaseModel';
+import { Event } from '../db';
+import BaseModel from './BaseModel';
 
 export default class EventModel extends BaseModel {
 

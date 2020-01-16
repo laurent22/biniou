@@ -6,7 +6,7 @@ import services from './services';
 
 import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
-import { ErrorBadRequest } from './utils/errors';
+import { setupDatabase } from './db';
 
 async function exitProcess(code:number) {
 	await services.eventService.waitForDispatches();
@@ -68,6 +68,7 @@ async function showHelp() {
 async function main() {
 	const { argv, selectedCommand } = setupCommands();
 	await config.load(argv);
+	await setupDatabase();
 
 	if (!selectedCommand) {
 		const help = await showHelp();

@@ -1,4 +1,3 @@
-import db from '../db';
 import * as Knex from 'knex';
 
 // This transaction handler allows abstracting away the complexity of managing nested transactions
@@ -7,7 +6,7 @@ import * as Knex from 'knex';
 // simply won't do anything. The last active transaction commits the results. If a rollback
 // happens, the following calls to rollback will be a no-op.
 // Set logEnabled_ to `true` to see what happens with nested transactions.
-class TransactionHandler {
+export default class TransactionHandler {
 
 	db_:Knex<any, any[]> = null;
 	transactionStack_:number[] = [];
@@ -15,7 +14,7 @@ class TransactionHandler {
 	transactionIndex_:number = 0;
 	logEnabled_:boolean = false;
 
-	constructor() {
+	constructor(db:Knex<any, any[]>) {
 		this.db_ = db;
 	}
 
@@ -75,5 +74,3 @@ class TransactionHandler {
 	}
 
 }
-
-export const transactionHandler = new TransactionHandler();

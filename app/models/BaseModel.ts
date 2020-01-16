@@ -1,8 +1,8 @@
 import db, { WithDates, WithUuid, Event, Job, JobState, databaseSchema } from '../db';
 import * as Knex from 'knex';
-import { transactionHandler } from '../utils/dbUtils';
 import uuidgen from '../utils/uuidgen';
 import { ErrorUnprocessableEntity, ErrorBadRequest } from '../utils/errors';
+import TransactionHandler from '../utils/TransactionHandler';
 
 export interface ModelOptions {
 
@@ -27,9 +27,18 @@ export default abstract class BaseModel {
 
 	private options_:ModelOptions = null;
 	private defaultFields_:string[] = [];
+	private transactionHandler_:TransactionHandler = null;
+	private db_:Knex;
 
 	constructor(options:ModelOptions = null) {
 		this.options_ = Object.assign({}, options);
+		this.db_ = db();
+	}
+
+	private get transactionHandler():TransactionHandler {
+		if (this.transactionHandler_) return this.transactionHandler_;
+		this.transactionHandler_ = new TransactionHandler(this.db_);
+		return this.transactionHandler_;
 	}
 
 	get options():ModelOptions {
@@ -37,8 +46,8 @@ export default abstract class BaseModel {
 	}
 
 	get db():Knex<any, any[]> {
-		if (transactionHandler.activeTransaction) return transactionHandler.activeTransaction;
-		return db;
+		if (this.transactionHandler.activeTransaction) return this.transactionHandler.activeTransaction;
+		return this.db_;
 	}
 
 	get defaultFields():string[] {
@@ -57,15 +66,15 @@ export default abstract class BaseModel {
 	}
 
 	async startTransaction():Promise<number> {
-		return transactionHandler.start();
+		return this.transactionHandler.start();
 	}
 
 	async commitTransaction(txIndex:number):Promise<void> {
-		return transactionHandler.commit(txIndex);
+		return this.transactionHandler.commit(txIndex);
 	}
 
 	async rollbackTransaction(txIndex:number):Promise<void> {
-		return transactionHandler.rollback(txIndex);
+		return this.transactionHandler.rollback(txIndex);
 	}
 
 	async all():Promise<Event[] | Job[]> {
