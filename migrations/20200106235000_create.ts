@@ -1,3 +1,5 @@
+import * as Knex from 'knex';
+
 export async function up(knex: Knex): Promise<any> {
 	await knex.schema.createTable('events', function(table:Knex.CreateTableBuilder) {
 		table.string('id', 22).unique().primary().notNullable();
