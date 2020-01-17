@@ -16,6 +16,13 @@ export async function loadJsonFromFile(path:string, mustExist:boolean = true):Pr
 	}
 }
 
+export function fileExtensions(path:string):string {
+	if (!path) throw new Error('Path is empty');
+	const splitted = path.split('.');
+	if (splitted.length > 1) return splitted[splitted.length - 1];
+	return '';
+}
+
 export function basename(path:string):string {
 	if (!path) throw new Error('Path is empty');
 	let s = path.split(/\/|\\/);

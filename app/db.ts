@@ -1,4 +1,8 @@
 import * as Knex from 'knex';
+import * as fs from 'fs-extra';
+import { fileExtensions } from './fileUtils';
+
+// import { up as migration_20200106235000 } from '../migrations/20200106235000_up';
 
 const argv = require('yargs').argv;
 
@@ -20,15 +24,50 @@ const dbConfig_ = {
 };
 
 let db_:Knex = null;
+// When app runs - check if profile dir exists and create if not
 
-export function setupDatabase(config:any = null) {
-	db_ = require('knex')(Object.assign({}, dbConfig_, config));
+async function migrate(db:Knex, options:any = null) {
+	options = Object.assign({}, {
+		console: {
+			info: () => {},
+			warn: () => {},
+			error: () => {},
+		},
+	}, options);
+
+	const migrationDirectory = `${__dirname}/../migrations`;
+
+	const config = {
+		directory: migrationDirectory,
+		// Disable transactions because the models might open one too
+		disableTransactions: true,
+	};
+
+	options.console.info(`Using database: ${dbConfig().connection.filename}`);
+	options.console.info(`Running migrations in: ${config.directory}`);
+
+	const event = await db.migrate.latest(config);
+
+	const log:string[] = event[1];
+
+	if (!log.length) {
+		options.console.info('Database is already up to date');
+	} else {
+		options.console.info(`Ran migrations: ${log.join(', ')}`);
+	}
 }
 
-export default function():Knex {
+export async function setupDatabase(config:any = null) {
+	db_ = require('knex')(Object.assign({}, dbConfig_, config));
+	await migrate(db_);
+}
+
+function database():Knex {
 	if (!db_) throw new Error('Database has not been setup!');
 	return db_;
 }
+
+export default database;
 
 export function dbConfig() {
 	return dbConfig_;
