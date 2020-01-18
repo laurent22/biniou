@@ -2,10 +2,12 @@ import * as fs from 'fs-extra';
 import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
-import { Job } from '../db';
+import { Job, JobType, JobTrigger } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
+
+const schedule = require('node-schedule');
 
 export default class JobService extends BaseService {
 
@@ -80,6 +82,8 @@ export default class JobService extends BaseService {
 				const jobModel = new JobModel();
 				await jobModel.saveState(job.state.id, { last_started: Date.now() });
 
+				const startTime = Date.now();
+
 				try {
 					this.logger.info(`Starting job: ${job.id}`);
 					await result.run();
@@ -89,7 +93,7 @@ export default class JobService extends BaseService {
 
 				await sandbox.biniou.browserClose();
 				await jobModel.saveState(job.state.id, { last_finished: Date.now() });
-				this.logger.info(`Finished job: ${job.id}`);
+				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
 
 			for (const event of events) {
@@ -114,6 +118,22 @@ export default class JobService extends BaseService {
 		// 	output.push(await this.loadEvent(config.jobEventsDir(job.id) + '/' + eventFile));
 		// }
 		// return output;
+	}
+
+	async scheduleJob(job:Job) {
+		if (job.trigger === JobTrigger.Cron) {
+			schedule.scheduleJob(job.triggerSpec, () => {
+				this.processJob(job);
+			});
+		} else {
+			throw new Error(`Unsupported job trigger: ${job.trigger}`);
+		}
+	}
+
+	async scheduleJobs(jobs:Job[]) {
+		for (let job of jobs) {
+			this.scheduleJob(job);
+		}
 	}
 
 	async processJob(job:Job) {

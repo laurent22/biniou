@@ -1,8 +1,4 @@
 import * as Knex from 'knex';
-import * as fs from 'fs-extra';
-import { fileExtensions } from './fileUtils';
-
-// import { up as migration_20200106235000 } from '../migrations/20200106235000_up';
 
 const argv = require('yargs').argv;
 
@@ -11,7 +7,7 @@ const env = argv.env ? argv.env : 'prod';
 let dbFilename = `db-${env}.sqlite`;
 if (argv.dbConfigFilename) dbFilename = argv.dbConfigFilename;
 
-const dbConfig_ = {
+const defaultConfig_ = {
 	client: 'sqlite3',
 	connection: {
 		filename: `${__dirname}/../../${dbFilename}`,
@@ -43,7 +39,7 @@ async function migrate(db:Knex, options:any = null) {
 		disableTransactions: true,
 	};
 
-	options.console.info(`Using database: ${dbConfig().connection.filename}`);
+	// options.console.info(`Using database: ${options.connection.filename}`);
 	options.console.info(`Running migrations in: ${config.directory}`);
 
 	const event = await db.migrate.latest(config);
@@ -58,7 +54,9 @@ async function migrate(db:Knex, options:any = null) {
 }
 
 export async function setupDatabase(config:any = null) {
-	db_ = require('knex')(Object.assign({}, dbConfig_, config));
+	if (db_) throw new Error('Database has already been setup!');
+	config = Object.assign({}, defaultConfig_, config);
+	db_ = require('knex')(config);
 	await migrate(db_);
 }
 
@@ -67,10 +65,16 @@ function database():Knex {
 	return db_;
 }
 
+export async function closeDatabase() {
+	if (!db_) throw new Error('Database is not open!');
+	await db_.destroy();
+	db_ = null;
+}
+
 export default database;
 
-export function dbConfig() {
-	return dbConfig_;
+export function defaultConfig() {
+	return defaultConfig_;
 }
 
 interface DatabaseTableColumn {

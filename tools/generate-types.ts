@@ -2,15 +2,18 @@ require('source-map-support').install();
 
 import sqlts from '@rmp135/sql-ts';
 import * as fs from 'fs-extra';
+import {setupDatabase, closeDatabase} from '../app/db';
 
-const dbFilePath:string = `${__dirname}/../../app/db.ts`;
+const dbTypeScriptFilePath:string = `${__dirname}/../../app/db.ts`;
 
 const nameCasing:'pascal' | 'camel' = 'pascal';
+
+const dbPath = 'db-buildTypes.sqlite';
 
 const config = {
 	'dialect': 'sqlite3',
 	'connection': {
-		'filename': './db-buildTypes.sqlite',
+		'filename': `./${dbPath}`,
 	},
 	'useNullAsDefault': true,
 	'excludedTables': ['main.knex_migrations', 'main.knex_migrations_lock', 'main.android_metadata'],
@@ -116,14 +119,17 @@ function execCommand(command:string, options:any = null) {
 }
 
 async function main() {
+	// Create a new blank database and close it
+	// sqlts will then re-open the database and build the type definition from it
+	await fs.remove(dbPath);
 
-	// rm -f db-buildTypes.sqlite
-	// NODE_ENV=buildTypes npm run db-migrate
-	// NODE_ENV=buildTypes node dist/tools/generate-types.js
-	// rm -f db-buildTypes.sqlite
+	await setupDatabase({
+		connection: {
+			filename: dbPath,
+		},
+	});
 
-	await fs.remove('db-buildTypes.sqlite');
-	console.info(await execCommand('npm run db-migrate -- --db-config-filename db-buildTypes.sqlite'));
+	await closeDatabase();
 
 	const definitions = await sqlts.toObject(config);
 
@@ -141,12 +147,12 @@ async function main() {
 	content += '\n\n';
 	content += `export const databaseSchema:DatabaseTables = {\n${tableStrings.join('\n')}\n};`;
 
-	insertContentIntoFile(dbFilePath, config.fileReplaceWithinMarker, config.fileReplaceWithinMarker, content);
+	insertContentIntoFile(dbTypeScriptFilePath, config.fileReplaceWithinMarker, config.fileReplaceWithinMarker, content);
 }
 
 main().catch(error => {
 	console.error('Fatal error', error);
 	process.exit(1);
 }).finally(async () => {
-	await fs.remove('db-buildTypes.sqlite');
+	await fs.remove(dbPath);
 });

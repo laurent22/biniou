@@ -68,7 +68,11 @@ async function showHelp() {
 async function main() {
 	const { argv, selectedCommand } = setupCommands();
 	await config.load(argv);
-	await setupDatabase();
+	await setupDatabase({
+		connection: {
+			filename: `${config.rootDir}/database.sqlite`,
+		},
+	});
 
 	if (!selectedCommand) {
 		const help = await showHelp();

@@ -3,8 +3,7 @@ require('source-map-support').install();
 import JobModel from '../models/JobModel';
 import services from '../services';
 import BaseCommand from './BaseCommand';
-
-const schedule = require('node-schedule');
+import { wait } from '../utils/timeUtils';
 
 export default class StartCommand extends BaseCommand {
 
@@ -17,15 +16,13 @@ export default class StartCommand extends BaseCommand {
 	}
 
 	async run():Promise<void> {
-		console.info('START');
 		const jobModel = new JobModel();
 		const jobs = await jobModel.all();
 		const needToRunJobs = await jobModel.jobsThatNeedToRunNow(jobs);
 		await services.jobService.processJobs(needToRunJobs);
+		await services.jobService.scheduleJobs(jobs);
 
-		// var j = schedule.scheduleJob('42 * * * *', function(){
-		// 	console.log('The answer to life, the universe, and everything!');
-		// });
+		while (true) await wait(60);
 	}
 
 }
