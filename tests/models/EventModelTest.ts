@@ -29,19 +29,6 @@ describe('EventModelTest', function() {
 			const events = await eventModel.eventsSince('test', Date.now(), []);
 			expect(events.length).toBe(0);
 		}
-
-		{
-			await msleep(1);
-			const events = await eventModel.eventsSince('test', 0, [event1.id]);
-			expect(events.length).toBe(2);
-		}
-
-		{
-			await msleep(1);
-			const events = await eventModel.eventsSince('test', 0, [event1.id, event3.id]);
-			expect(events.length).toBe(1);
-			expect(events[0].id).toBe(event2.id);
-		}
 	}));
 
 	it('should return last events (several events with same timestamp)', asyncTest(async function() {
@@ -50,8 +37,8 @@ describe('EventModelTest', function() {
 		const saveOptions:SaveOptions = { autoTimestamp: false };
 
 		const event1:Event = await eventModel.save({ ...baseProps, body: 'one' }, saveOptions);
-		await eventModel.save({ ...baseProps, body: 'two' }, saveOptions);
-		await eventModel.save({ ...baseProps, body: 'three' }, saveOptions);
+		const event2:Event = await eventModel.save({ ...baseProps, body: 'two' }, saveOptions);
+		const event3:Event = await eventModel.save({ ...baseProps, body: 'three' }, saveOptions);
 
 		{
 			const events = await eventModel.eventsSince('test', 1000, []);
@@ -61,6 +48,12 @@ describe('EventModelTest', function() {
 		{
 			const events = await eventModel.eventsSince('test', 1000, [event1.id]);
 			expect(events.length).toBe(2);
+		}
+
+		{
+			const events = await eventModel.eventsSince('test', 1000, [event1.id, event3.id]);
+			expect(events.length).toBe(1);
+			expect(events[0].id).toBe(event2.id);
 		}
 	}));
 

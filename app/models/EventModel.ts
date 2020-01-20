@@ -12,13 +12,17 @@ export default class EventModel extends BaseModel {
 	}
 
 	async eventsSince(eventName:string, sinceDate:number, sinceIds:string[], limit:number = 100):Promise<Event[]> {
-		return this
+		const results = await this
 			.db(this.tableName)
 			.select(this.defaultFields)
 			.where('name', '=', eventName)
 			.where('created_time', '>=', sinceDate)
-			.whereNotIn('id', sinceIds)
 			.limit(limit);
+
+		return results.filter((e:Event) => {
+			if (e.created_time > sinceDate) return true;
+			return !sinceIds.includes(e.id);
+		});
 	}
 
 }
