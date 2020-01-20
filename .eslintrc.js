@@ -2,6 +2,7 @@ module.exports = {
 	'env': {
 		'es6': true,
 		'node': true,
+		'jasmine': true,
 	},
 	"parser": "@typescript-eslint/parser",
 	'extends': ['eslint:recommended'],
@@ -61,5 +62,6 @@ module.exports = {
 	},
 	"plugins": [
 		"@typescript-eslint",
+		"jasmine",
 	],
 };

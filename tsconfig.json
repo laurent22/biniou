@@ -20,5 +20,6 @@
         "app/**/*",
         "tools/**/*",
         "migrations/**/*",
+        "tests/**/*",
 	],
 }

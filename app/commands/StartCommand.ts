@@ -3,7 +3,7 @@ require('source-map-support').install();
 import JobModel from '../models/JobModel';
 import services from '../services';
 import BaseCommand from './BaseCommand';
-import { wait } from '../utils/timeUtils';
+import { sleep } from '../utils/timeUtils';
 
 export default class StartCommand extends BaseCommand {
 
@@ -22,7 +22,7 @@ export default class StartCommand extends BaseCommand {
 		await services.jobService.processJobs(needToRunJobs);
 		await services.jobService.scheduleJobs(jobs);
 
-		while (true) await wait(60);
+		while (true) await sleep(60);
 	}
 
 }

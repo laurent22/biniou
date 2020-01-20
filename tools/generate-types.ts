@@ -63,8 +63,7 @@ function createTypeString(table:any) {
 			if (['id'].includes(name)) continue;
 		}
 
-		if (name === 'body_type') type = 'EventBodyType';
-		// if (table.name === 'files' && name === 'content') type = 'Buffer';
+		if (table.name === 'events' && name === 'body_type') type = 'EventBodyType';
 
 		colStrings.push(`\t${name}?: ${type}`);
 	}

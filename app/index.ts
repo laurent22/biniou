@@ -61,7 +61,10 @@ function setupCommands():any {
 
 async function showHelp() {
 	return new Promise((resolve:Function) => {
-		yargs.showHelp((s:string) => resolve(s));
+		// We have latest version of yargs but types have not been updated
+		// year, which means an error on the showHelp argument. To disable
+		// that error, cast yargs to any.
+		(yargs as any).showHelp((s:string) => resolve(s));
 	});
 }
 

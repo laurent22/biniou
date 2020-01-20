@@ -12,6 +12,7 @@ export interface SaveOptions {
 	isNew?: boolean,
 	skipValidation?: boolean,
 	validationRules?: any,
+	autoTimestamp?: boolean,
 }
 
 export interface DeleteOptions {
@@ -102,6 +103,7 @@ export default abstract class BaseModel {
 
 	async save(object:Event | Job | JobState, options:SaveOptions = {}):Promise<Event | Job | JobState> {
 		if (!object) throw new Error('Object cannot be empty');
+		if (options.autoTimestamp === undefined) options.autoTimestamp = true;
 
 		const toSave = Object.assign({}, object);
 
@@ -111,7 +113,7 @@ export default abstract class BaseModel {
 			(toSave as WithUuid).id = uuidgen();
 		}
 
-		if (this.hasDateProperties()) {
+		if (this.hasDateProperties() && options.autoTimestamp) {
 			const timestamp = Date.now();
 			if (isNew) {
 				(toSave as WithDates).created_time = timestamp;

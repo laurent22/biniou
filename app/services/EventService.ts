@@ -2,6 +2,7 @@ import BaseService from './BaseService';
 import { Event, EventBodyType } from '../db';
 import md5 = require('md5');
 import EventModel from '../models/EventModel';
+import { JobStateContext } from '../models/JobStateModel';
 
 export default class EventService extends BaseService {
 
@@ -55,5 +56,9 @@ export default class EventService extends BaseService {
 
 		this.dispatchCount_--;
 	}
+
+	// async eventsSince(eventName:string, context:JobStateContext):Promise<Events[]> {
+
+	// }
 
 }

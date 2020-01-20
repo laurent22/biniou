@@ -27,6 +27,9 @@ export default class JobModel {
 		if (o.script) job.script = o.script;
 		if (o.input) job.input = o.input;
 
+		if (job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
+		if (job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
+
 		return job;
 	}
 

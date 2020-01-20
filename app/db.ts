@@ -71,6 +71,10 @@ export async function closeDatabase() {
 	db_ = null;
 }
 
+export function databaseReady():boolean {
+	return !!db_;
+}
+
 export default database;
 
 export function defaultConfig() {
@@ -108,6 +112,8 @@ export enum JobTrigger {
     Event = 'event',
 }
 
+export type JobTriggerSpec = string | string[]
+
 export enum EventBodyType {
 	String = 1,
 	Object = 2,
@@ -117,7 +123,7 @@ export interface Job {
 	id: string;
 	type: JobType;
 	trigger?: JobTrigger,
-	triggerSpec?: string,
+	triggerSpec?: JobTriggerSpec,
 	state: JobState;
 	input?: string;
 	scriptFile?: string;
@@ -139,6 +145,7 @@ export interface JobState {
 	job_id?: string
 	last_started?: number
 	last_finished?: number
+	context?: string
 	created_time?: number
 	updated_time?: number
 }
@@ -159,6 +166,7 @@ export const databaseSchema:DatabaseTables = {
 		job_id: { type: 'string' },
 		last_started: { type: 'number' },
 		last_finished: { type: 'number' },
+		context: { type: 'string' },
 		created_time: { type: 'number' },
 		updated_time: { type: 'number' },
 	},

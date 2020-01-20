@@ -44,7 +44,7 @@ export default class Logger {
 		this.targets_ = [];
 	}
 
-	addTarget(type:TargetType, options:any = null) {
+	addTarget(type:TargetType) { // , options:any = null) {
 		let target = { type: type };
 		// for (let n in options) {
 		// 	target[n] = options[n];

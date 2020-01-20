@@ -1,16 +1,16 @@
 export default abstract class BaseCommand {
 
-	commandName() {
+	commandName():string {
 		const splitted = this.command().split(' ');
 		if (!splitted.length) throw new Error(`Invalid command: ${this.command()}`);
 		return splitted[0];
 	}
 
-	command() {
+	command():string {
 		throw new Error('Not implemented');
 	}
 
-	description() {
+	description():string {
 		throw new Error('Not implemented');
 	}
 

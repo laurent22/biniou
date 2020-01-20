@@ -2,12 +2,17 @@ import * as fs from 'fs-extra';
 import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
-import { Job, JobType, JobTrigger } from '../db';
+import { Job, Event, JobTrigger } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
+import JobStateModel from '../models/JobStateModel';
 
 const schedule = require('node-schedule');
+
+interface ExecScriptOptions {
+	events:Event[],
+}
 
 export default class JobService extends BaseService {
 
@@ -22,7 +27,7 @@ export default class JobService extends BaseService {
 		return this.eventService_;
 	}
 
-	async execScript(job:Job, events:any[]):Promise<string> {
+	private async execScript(job:Job, options:ExecScriptOptions):Promise<string> {
 		if (job.type === 'shell') {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
@@ -86,7 +91,7 @@ export default class JobService extends BaseService {
 
 				try {
 					this.logger.info(`Starting job: ${job.id}`);
-					await result.run();
+					await result.run(options.events);
 				} catch (error) {
 					this.logger.error(`In script ${scriptPath}\n`, error);
 				}
@@ -96,28 +101,12 @@ export default class JobService extends BaseService {
 				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
 
-			for (const event of events) {
-				await result.handleEvent(event);
-			}
+			// for (const event of events) {
+			// 	await result.handleEvent(event);
+			// }
 		}
 
 		return '';
-	}
-
-	async loadEvent(path:string):Promise<any> {
-		// return loadJsonFromFile(path);
-	}
-
-	async jobEventsSince(job:any, eventName:string):Promise<any[]> {
-		return [];
-		// const eventFiles = await fs.readdir(config.eventsDir + '/' + job.id);
-		// const output = [];
-		// for (const eventFile of eventFiles) {
-		// 	const n = filename(eventFile);
-		// 	if (eventName !== null && n < eventName) continue;
-		// 	output.push(await this.loadEvent(config.jobEventsDir(job.id) + '/' + eventFile));
-		// }
-		// return output;
 	}
 
 	async scheduleJob(job:Job) {
@@ -137,11 +126,26 @@ export default class JobService extends BaseService {
 	}
 
 	async processJob(job:Job) {
-		if (!(await fs.pathExists(config.eventsDir))) await fs.mkdirp(config.eventsDir);
+		// if (!(await fs.pathExists(config.eventsDir))) await fs.mkdirp(config.eventsDir);
 		// const inputJob = job.input ? this.jobById(job.input) : null;
 		// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
-		const events = [];
-		await this.execScript(job, events);
+		// const events = [];
+
+		const events:Event[] = [];
+
+		// if (job.trigger === JobTrigger.Event) {
+		// 	const stateModel = new JobStateModel();
+		// 	const context = stateModel.parseContext(job.state);
+		// 	for (const eventName of job.triggerSpec) {
+		// 		await this.eventService.eventsSince(eventName, context);
+		// 		//const eventContext =
+		// 		//events.push(await this.eventService.eventsSince(job.state.context));
+		// 	}
+		// }
+
+		await this.execScript(job, {
+			events: events,
+		});
 	}
 
 	async processJobs(jobs:Job[]) {
