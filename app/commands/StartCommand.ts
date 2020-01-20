@@ -20,6 +20,7 @@ export default class StartCommand extends BaseCommand {
 		const jobs = await jobModel.all();
 		const needToRunJobs = await jobModel.jobsThatNeedToRunNow(jobs);
 		await services.jobService.processJobs(needToRunJobs);
+
 		await services.jobService.scheduleJobs(jobs);
 
 		while (true) await sleep(60);

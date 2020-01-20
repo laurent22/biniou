@@ -7,6 +7,8 @@ import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
 import JobStateModel from '../models/JobStateModel';
+import EventModel from '../models/EventModel';
+import fetch from 'node-fetch';
 
 const schedule = require('node-schedule');
 
@@ -75,6 +77,7 @@ export default class JobService extends BaseService {
 
 				return {
 					console: console,
+					fetch: fetch,
 					biniou: biniou,
 				};
 			}(this));
@@ -100,10 +103,6 @@ export default class JobService extends BaseService {
 				await jobModel.saveState(job.state.id, { last_finished: Date.now() });
 				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
-
-			// for (const event of events) {
-			// 	await result.handleEvent(event);
-			// }
 		}
 
 		return '';
@@ -114,8 +113,10 @@ export default class JobService extends BaseService {
 			schedule.scheduleJob(job.triggerSpec, () => {
 				this.processJob(job);
 			});
-		} else {
-			throw new Error(`Unsupported job trigger: ${job.trigger}`);
+		} else if (job.trigger === JobTrigger.Event) {
+			schedule.scheduleJob('* * * * *', () => {
+				this.processJob(job);
+			});
 		}
 	}
 
@@ -131,17 +132,15 @@ export default class JobService extends BaseService {
 		// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
 		// const events = [];
 
-		const events:Event[] = [];
+		let events:Event[] = [];
 
-		// if (job.trigger === JobTrigger.Event) {
-		// 	const stateModel = new JobStateModel();
-		// 	const context = stateModel.parseContext(job.state);
-		// 	for (const eventName of job.triggerSpec) {
-		// 		await this.eventService.eventsSince(eventName, context);
-		// 		//const eventContext =
-		// 		//events.push(await this.eventService.eventsSince(job.state.context));
-		// 	}
-		// }
+		if (job.trigger === JobTrigger.Event) {
+			const stateModel = new JobStateModel();
+			const context = stateModel.parseContext(job.state);
+			for (const eventName of job.triggerSpec) {
+				events = events.concat(await this.eventService.eventsSince(eventName, context));
+			}
+		}
 
 		await this.execScript(job, {
 			events: events,

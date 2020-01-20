@@ -57,8 +57,12 @@ export default class EventService extends BaseService {
 		this.dispatchCount_--;
 	}
 
-	// async eventsSince(eventName:string, context:JobStateContext):Promise<Events[]> {
-
-	// }
+	async eventsSince(eventName:string, context:JobStateContext):Promise<Event[]> {
+		const eventModel:EventModel = new EventModel();
+		const c = context.events[eventName];
+		const sinceTime = c && c.lastTimestamp ? c.lastTimestamp : 0;
+		const sinceHashes = c && c.lastHashes ? c.lastHashes : [];
+		return eventModel.eventsSince(eventName, sinceTime, sinceHashes);
+	}
 
 }
