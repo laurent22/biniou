@@ -61,7 +61,7 @@ export default class EventService extends BaseService {
 		const eventModel:EventModel = new EventModel();
 		const c = context.events[eventName];
 		const sinceTime = c && c.lastTimestamp ? c.lastTimestamp : 0;
-		const sinceHashes = c && c.lastHashes ? c.lastHashes : [];
+		const sinceHashes = c && c.lastEventIds ? c.lastEventIds : [];
 		return eventModel.eventsSince(eventName, sinceTime, sinceHashes);
 	}
 

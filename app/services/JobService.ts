@@ -2,13 +2,13 @@ import * as fs from 'fs-extra';
 import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
-import { Job, Event, JobTrigger } from '../db';
+import { Job, Event, JobTrigger, JobType } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
 import JobStateModel from '../models/JobStateModel';
-import EventModel from '../models/EventModel';
 import fetch from 'node-fetch';
+import { sleep } from '../utils/timeUtils';
 
 const schedule = require('node-schedule');
 
@@ -16,20 +16,35 @@ interface ExecScriptOptions {
 	events:Event[],
 }
 
+interface ScheduledJobs {
+	[key:string]: any
+}
+
 export default class JobService extends BaseService {
 
 	eventService_:EventService;
+	eventCheckSchedule_:any = null;
+	scheduledJobs_:ScheduledJobs = {};
+	jobs_:Job[] = null;
+	jobModel_:JobModel;
 
 	constructor(eventService:EventService) {
 		super();
 		this.eventService_ = eventService;
 	}
 
-	get eventService():EventService {
+	private get eventService():EventService {
 		return this.eventService_;
 	}
 
-	private async execScript(job:Job, options:ExecScriptOptions):Promise<string> {
+	private get jobModel():JobModel {
+		if (!this.jobModel_) this.jobModel_ = new JobModel();
+		return this.jobModel_;
+	}
+
+	private async execScript(job:Job, options:ExecScriptOptions = null):Promise<any> {
+		const eventsProcessed = [];
+
 		if (job.type === 'shell') {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
@@ -42,7 +57,9 @@ export default class JobService extends BaseService {
 				let browser_:puppeteer.Browser = null;
 
 				const biniou:any = {
+					dispatchEventCount_: 0,
 					dispatchEvent: (name:string, body:any, options:any) => {
+						biniou.dispatchEventCount_++;
 						return that.eventService.dispatchEvent(job.id, name, body, options);
 					},
 					dispatchEvents: async (name:string, bodies:any[], options:any) => {
@@ -87,36 +104,56 @@ export default class JobService extends BaseService {
 			const result = vm.runInContext(scriptContent, sandbox);
 
 			if (result.run) {
-				const jobModel = new JobModel();
-				await jobModel.saveState(job.state.id, { last_started: Date.now() });
+				await this.jobModel.saveState(job.state.id, { last_started: Date.now() });
 
 				const startTime = Date.now();
 
 				try {
 					this.logger.info(`Starting job: ${job.id}`);
-					await result.run(options.events);
+					if (job.trigger === JobTrigger.Event) {
+						this.logger.info(`Number of events: ${options.events.length}`);
+						for (let event of options.events) {
+							await result.run(event);
+							eventsProcessed.push(event.id);
+						}
+					} else {
+						await result.run(null);
+					}
+					this.logger.info(`Dispatched ${sandbox.biniou.dispatchEventCount_} events`);
 				} catch (error) {
-					this.logger.error(`In script ${scriptPath}\n`, error);
+					// For some reason, error thrown from the executed script do not have the type "Error"
+					// but are instead plain object. So recreate the Error object here so that it can
+					// be handled correctly by loggers, etc.
+					const newError:Error = new Error(error.message);
+					newError.stack = error.stack;
+					this.logger.jobError(job.id, `In script ${scriptPath}:`, newError);
 				}
 
 				await sandbox.biniou.browserClose();
-				await jobModel.saveState(job.state.id, { last_finished: Date.now() });
+				await this.jobModel.saveState(job.state.id, { last_finished: Date.now() });
 				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
 		}
 
-		return '';
+		return {
+			eventsProcessed: eventsProcessed,
+		};
 	}
 
 	async scheduleJob(job:Job) {
+		if (this.scheduledJobs_[job.id]) throw new Error(`Job is already scheduled: ${job.id}`);
+
 		if (job.trigger === JobTrigger.Cron) {
-			schedule.scheduleJob(job.triggerSpec, () => {
+			this.scheduledJobs_[job.id] = schedule.scheduleJob(job.triggerSpec, () => {
 				this.processJob(job);
 			});
 		} else if (job.trigger === JobTrigger.Event) {
-			schedule.scheduleJob('* * * * *', () => {
-				this.processJob(job);
-			});
+			if (!this.eventCheckSchedule_) {
+				this.eventCheckSchedule_ = schedule.scheduleJob('*/5 * * * *', () => {
+					this.logger.info('Running event-based jobs...');
+					this.processEventJobs();
+				});
+			}
 		}
 	}
 
@@ -126,48 +163,60 @@ export default class JobService extends BaseService {
 		}
 	}
 
+	async scheduleAllJobs() {
+		const jobs = await this.jobModel.all();
+		await this.scheduleJobs(jobs);
+	}
+
 	async processJob(job:Job) {
-		// if (!(await fs.pathExists(config.eventsDir))) await fs.mkdirp(config.eventsDir);
-		// const inputJob = job.input ? this.jobById(job.input) : null;
-		// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
-		// const events = [];
-
-		let events:Event[] = [];
-
 		if (job.trigger === JobTrigger.Event) {
+			let events:Event[] = [];
 			const stateModel = new JobStateModel();
 			const context = stateModel.parseContext(job.state);
 			for (const eventName of job.triggerSpec) {
-				events = events.concat(await this.eventService.eventsSince(eventName, context));
-			}
-		}
+				const events = await this.eventService.eventsSince(eventName, context);
+				const result = await this.execScript(job, { events: events });
 
-		await this.execScript(job, {
-			events: events,
-		});
+				// Create processed_events table - (id, job_id, event_id, success, error)
+				// Record result every time an event is processed
+				// Use numeric ID for events - check last event that was done and resume from there
+
+				// context.events[eventName].lastEventIds
+
+				// if (result.eventsProcessed.length === events.length) {
+
+				// } else {
+
+				// }
+			}
+		} else {
+			await this.execScript(job);
+		}
 	}
 
-	async processJobs(jobs:Job[]) {
+	private async processJobs(jobs:Job[], jobTrigger:JobTrigger = null) {
 		for (const job of jobs) {
+			if (jobTrigger !== null && job.trigger !== jobTrigger) continue;
 			await this.processJob(job);
-			// if (!(await fs.pathExists(config.eventsDir))) await fs.mkdirp(config.eventsDir);
-			// const inputJob = job.input ? this.jobById(job.input) : null;
-			// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
-			// await this.execScript(job, events);
-
-
-
-			// const eventFilePath = job.eventsDir + '/' + moment(Date.now()).format('YYYYMMDD-HHmmss-SSS') + '.json'
-			// const inputJob = job.input ? this.jobById(jobs, job.input) : null;
-			// const events = inputJob ? await this.jobEventsSince(inputJob, null) : [];
-
-			// if (job.type === 'shell') {
-			// 	// const result = await execCommand(job.script);
-			// 	// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
-			// } else if (job.type === 'js') {
-			// 	// await execJsScriptFile(job.assetDir + '/' + job.scriptFile, job.id, events);
-			// }
 		}
+	}
+
+	async processJobsThatNeedToRunNow() {
+		const jobs = await this.jobModel.all();
+		const needToRunJobs = await this.jobModel.jobsThatNeedToRunNow(jobs);
+		await this.processJobs(needToRunJobs);
+	}
+
+	private async processEventJobs() {
+		const jobModel = new JobModel();
+		const jobs = await jobModel.all();
+		return this.processJobs(jobs, JobTrigger.Event);
+	}
+
+	async start() {
+		await this.processJobsThatNeedToRunNow();
+		await this.scheduleAllJobs();
+		while (true) await sleep(60);
 	}
 
 }

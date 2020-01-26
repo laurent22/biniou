@@ -4,8 +4,9 @@ import { JobState } from '../db';
 export interface JobStateContext {
 	events: {
 		[key:string]: {
-			lastHashes: string[],
+			lastEventIds: string[],
 			lastTimestamp: number,
+			doneEvents: string[],
 		}
 	}
 }

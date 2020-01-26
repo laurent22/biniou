@@ -18,7 +18,6 @@ export default class RunCommand extends BaseCommand {
 		return [
 			{
 				name: 'job-id',
-				// options: {},
 			},
 		];
 	}

@@ -5,13 +5,22 @@ import config from '../config';
 import * as fs from 'fs-extra';
 const cronParser = require('cron-parser');
 
+interface JobCache {
+	[key:string]: Job
+}
+
 export default class JobModel {
+
+	cache_:JobCache = {};
+	cacheAllDone_:boolean = false;
 
 	jobDir(id:string):string {
 		return `${config.jobsDir}/${id}`;
 	}
 
 	async load(id:string):Promise<Job> {
+		if (this.cache_[id]) return this.cache_[id];
+
 		const path = this.jobDir(id);
 		const o:any = await loadJsonFromFile(`${path}/job.json`);
 
@@ -30,6 +39,8 @@ export default class JobModel {
 		if (job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
 		if (job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
 
+		this.cache_[id] = job;
+
 		return job;
 	}
 
@@ -42,6 +53,7 @@ export default class JobModel {
 			const job = await this.load(dir);
 			output.push(job);
 		}
+		this.cacheAllDone_ = true;
 		return output;
 	}
 
@@ -85,6 +97,7 @@ export default class JobModel {
 	async jobsThatNeedToRunNow(jobs:Job[]):Promise<Job[]> {
 		const output:Job[] = [];
 		for (const job of jobs) {
+			if (job.trigger !== JobTrigger.Cron) continue;
 			const lastRunDate = job.state.last_started;
 			const shouldHaveRanDate = this.previousIterationDate(job);
 			if (lastRunDate < shouldHaveRanDate.getTime()) output.push(job);

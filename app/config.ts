@@ -40,16 +40,8 @@ class Config {
 		return `${this.jobsDir}/${jobId}`;
 	}
 
-	jobEventsDir(jobId:string):string {
-		return `${this.eventsDir}/${jobId}`;
-	}
-
 	get jobsDir() {
 		return `${this.rootDir}/jobs`;
-	}
-
-	get eventsDir() {
-		return `${this.rootDir}/events`;
 	}
 
 }

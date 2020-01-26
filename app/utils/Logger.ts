@@ -23,6 +23,10 @@ interface LoggerTarget {
 	console?: any
 }
 
+interface LogOptions {
+	jobId?: string,
+}
+
 export default class Logger {
 
 	targets_:LoggerTarget[] = [];
@@ -52,7 +56,7 @@ export default class Logger {
 		this.targets_.push(target);
 	}
 
-	objectToString(object:any):string {
+	private objectToString(object:any):string {
 		let output = '';
 
 		if (typeof object === 'object') {
@@ -69,7 +73,7 @@ export default class Logger {
 		return output;
 	}
 
-	objectsToString(...object:any[]):string {
+	private objectsToString(...object:any[]):string {
 		let output = [];
 		for (let i = 0; i < object.length; i++) {
 			output.push(`"${this.objectToString(object[i])}"`);
@@ -77,13 +81,17 @@ export default class Logger {
 		return output.join(', ');
 	}
 
-	targetLevel(target:LoggerTarget) {
+	private targetLevel(target:LoggerTarget) {
 		if (target.level !== undefined) return target.level;
 		return this.level();
 	}
 
-	log(level:LogLevel, ...object:any) {
+	private logWithOptions(level:LogLevel, options:LogOptions, ...object:any) {
 		if (!this.targets_.length) return;
+
+		options = Object.assign({}, {
+			jobId: '__biniou__',
+		}, options);
 
 		const line = `${moment().format('YYYY-MM-DD HH:mm:ss')}: `;
 
@@ -103,12 +111,28 @@ export default class Logger {
 				// let serializedObject = this.objectsToString(...object);
 				// Logger.fsDriver().appendFileSync(target.path, `${line + serializedObject}\n`);
 			} else if (target.type === TargetType.EventLog) {
-				services.eventService.dispatchEvent('__biniou__', 'log', {
+				services.eventService.dispatchEvent(options.jobId, 'log', {
 					level: level,
 					message: line + this.objectsToString(...object),
 				});
 			}
 		}
+	}
+
+	private log(level:LogLevel, ...object:any) {
+		return this.logWithOptions(level, {}, ...object);
+	}
+
+	jobError(jobId:string, ...object:any) {
+		return this.logWithOptions(LogLevel.Error, { jobId: jobId }, ...object);
+	}
+
+	jobWarn(jobId:string, ...object:any) {
+		return this.logWithOptions(LogLevel.Warn, { jobId: jobId }, ...object);
+	}
+
+	jobInfo(jobId:string, ...object:any) {
+		return this.logWithOptions(LogLevel.Info, { jobId: jobId }, ...object);
 	}
 
 	error(...object:any) {
