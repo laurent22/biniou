@@ -8,7 +8,9 @@ import EventService from './EventService';
 import JobModel from '../models/JobModel';
 import JobStateModel from '../models/JobStateModel';
 import fetch from 'node-fetch';
-import { sleep } from '../utils/timeUtils';
+import TaskQueue from '../utils/TaskQueue';
+import Logger from '../utils/Logger';
+import {sleep} from '../utils/timeUtils';
 
 const schedule = require('node-schedule');
 
@@ -27,10 +29,17 @@ export default class JobService extends BaseService {
 	scheduledJobs_:ScheduledJobs = {};
 	jobs_:Job[] = null;
 	jobModel_:JobModel;
+	jobQueue_:TaskQueue;
 
 	constructor(eventService:EventService) {
 		super();
 		this.eventService_ = eventService;
+		this.jobQueue_ = new TaskQueue();
+	}
+
+	setLogger(v:Logger) {
+		super.setLogger(v);
+		this.jobQueue_.setLogger(v);
 	}
 
 	private get eventService():EventService {
@@ -143,15 +152,21 @@ export default class JobService extends BaseService {
 	async scheduleJob(job:Job) {
 		if (this.scheduledJobs_[job.id]) throw new Error(`Job is already scheduled: ${job.id}`);
 
+		const jobTaskId = `${job.id}_${Date.now()}_${Math.random()}`;
+
 		if (job.trigger === JobTrigger.Cron) {
 			this.scheduledJobs_[job.id] = schedule.scheduleJob(job.triggerSpec, () => {
-				this.processJob(job);
+				this.jobQueue_.push(jobTaskId, async () => {
+					await this.processJob(job);
+				});
 			});
 		} else if (job.trigger === JobTrigger.Event) {
 			if (!this.eventCheckSchedule_) {
 				this.eventCheckSchedule_ = schedule.scheduleJob('*/5 * * * *', () => {
-					this.logger.info('Running event-based jobs...');
-					this.processEventJobs();
+					this.jobQueue_.push(jobTaskId, async () => {
+						this.logger.info('Running event-based jobs...');
+						await this.processEventJobs();
+					});
 				});
 			}
 		}
