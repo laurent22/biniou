@@ -1,4 +1,5 @@
 require('source-map-support').install();
+require('dotenv').config();
 
 import config from './config';
 import * as yargs from 'yargs';
@@ -9,6 +10,8 @@ import StartCommand from './commands/StartCommand';
 import { setupDatabase } from './db';
 import { sleep } from './utils/timeUtils';
 import TaskQueue from './utils/TaskQueue';
+
+const nodeEnvFile = require('node-env-file');
 
 async function exitProcess(code:number) {
 	await services.eventService.waitForDispatches();
@@ -32,9 +35,15 @@ function setupCommands():any {
 	}
 
 	yargs.option('env', {
-		default: 'prod',
+		default: process.env.BINIOU_ENV,
 		type: 'string',
 		choices: ['dev', 'prod'],
+		hidden: true,
+	});
+
+	yargs.option('stack-trace', {
+		default: process.env.BINIOU_STACK_TRACE === '1',
+		type: 'boolean',
 		hidden: true,
 	});
 
@@ -72,7 +81,8 @@ async function showHelp() {
 
 async function main() {
 	const { argv, selectedCommand } = setupCommands();
-	await config.load(argv);
+	await config.load(argv.env, argv);
+
 	await setupDatabase({
 		connection: {
 			filename: `${config.rootDir}/database.sqlite`,
@@ -89,6 +99,11 @@ async function main() {
 }
 
 main().catch(error => {
-	console.error(error);
+	if (config.argv('stackTrace')) {
+		console.error(error);
+	} else {
+		console.error(error.message);
+	}
+
 	return exitProcess(1);
 });

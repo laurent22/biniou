@@ -6,8 +6,8 @@ class Config {
 	env_:string;
 	argv_:any;
 
-	async load(argv:any, rootDir:string = null) {
-		this.env_ = argv.env;
+	async load(env:string, argv:any, rootDir:string = null) {
+		this.env_ = env;
 		this.argv_ = argv;
 		if (!rootDir) rootDir = this.defaultRootDir();
 		this.rootDir_ = rootDir;
@@ -15,11 +15,13 @@ class Config {
 	}
 
 	get env():string {
+		if (!this.env_) return 'dev'; // May happen for early error, when config hasn't been initialised yet
 		return this.env_;
 	}
 
-	get argv():any {
-		return this.argv_;
+	argv(name:string = null):any {
+		if (name === null) return this.argv_;
+		return this.argv_[name];
 	}
 
 	private defaultRootDir():string {
