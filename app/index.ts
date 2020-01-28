@@ -71,29 +71,6 @@ async function showHelp() {
 }
 
 async function main() {
-	// const queue = new TaskQueue('jobs');
-
-	// for (let i = 0; i < 20; i++) {
-	// 	queue.push(i, async () => {
-	// 		await sleep(Math.random() * 0.9);
-	// 		console.info(i);
-	// 	});
-	// }
-
-	// queue.push('1', async () => {
-	// 	await sleep(0.9);
-	// 	console.info('UN');
-	// });
-
-	// queue.push('2', async () => {
-	// 	await sleep(0.1);
-	// 	console.info('DEXU');
-	// });
-
-	await sleep(5);
-
-	process.exit();
-
 	const { argv, selectedCommand } = setupCommands();
 	await config.load(argv);
 	await setupDatabase({

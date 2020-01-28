@@ -11,7 +11,9 @@ import fetch from 'node-fetch';
 import TaskQueue from '../utils/TaskQueue';
 import Logger from '../utils/Logger';
 import {sleep} from '../utils/timeUtils';
+import * as Twitter from 'twitter';
 
+const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
 
 interface ExecScriptOptions {
@@ -33,6 +35,7 @@ export default class JobService extends BaseService {
 
 	constructor(eventService:EventService) {
 		super();
+
 		this.eventService_ = eventService;
 		this.jobQueue_ = new TaskQueue();
 	}
@@ -64,16 +67,22 @@ export default class JobService extends BaseService {
 
 			const sandbox = (function(that:JobService) {
 				let browser_:puppeteer.Browser = null;
+				let rssParser_:any = null;
+				let twitterClients_:any = {};
 
 				const biniou:any = {
 					dispatchEventCount_: 0,
-					dispatchEvent: (name:string, body:any, options:any) => {
+					createdEventCount_: 0,
+					dispatchEvent: async (name:string, body:any, options:any) => {
 						biniou.dispatchEventCount_++;
-						return that.eventService.dispatchEvent(job.id, name, body, options);
+						const created = await that.eventService.dispatchEvent(job.id, name, body, options);
+						if (created) biniou.createdEventCount_++;
 					},
 					dispatchEvents: async (name:string, bodies:any[], options:any) => {
 						for (let body of bodies) {
-							await that.eventService.dispatchEvent(job.id, name, body, options);
+							biniou.dispatchEventCount_++;
+							const created = await that.eventService.dispatchEvent(job.id, name, body, options);
+							if (created) biniou.createdEventCount_++;
 						}
 					},
 					browser: async () => {
@@ -85,6 +94,16 @@ export default class JobService extends BaseService {
 						if (!browser_) return;
 						await browser_.close();
 						browser_ = null;
+					},
+					rssParser: () => {
+						if (!rssParser_) rssParser_ = new RssParser();
+						return rssParser_;
+					},
+					twitterClient: (options:any) => {
+						const key = JSON.stringify(options);
+						if (twitterClients_[key]) return twitterClients_[key];
+						twitterClients_[key] = new Twitter(options);
+						return twitterClients_[key];
 					},
 				};
 
@@ -128,7 +147,7 @@ export default class JobService extends BaseService {
 					} else {
 						await result.run(null);
 					}
-					this.logger.info(`Dispatched ${sandbox.biniou.dispatchEventCount_} events`);
+					this.logger.info(`Events: Dispatched: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
 				} catch (error) {
 					// For some reason, error thrown from the executed script do not have the type "Error"
 					// but are instead plain object. So recreate the Error object here so that it can
@@ -163,8 +182,8 @@ export default class JobService extends BaseService {
 		} else if (job.trigger === JobTrigger.Event) {
 			if (!this.eventCheckSchedule_) {
 				this.eventCheckSchedule_ = schedule.scheduleJob('*/5 * * * *', () => {
+					this.logger.info('Running event-based jobs...');
 					this.jobQueue_.push(jobTaskId, async () => {
-						this.logger.info('Running event-based jobs...');
 						await this.processEventJobs();
 					});
 				});
@@ -180,30 +199,34 @@ export default class JobService extends BaseService {
 
 	async scheduleAllJobs() {
 		const jobs = await this.jobModel.all();
-		await this.scheduleJobs(jobs);
+		const cronJobsOnly = jobs.filter(j => j.trigger === JobTrigger.Cron);
+		this.logger.info(`JobService: Scheduling ${cronJobsOnly.length} cron job(s). Other jobs are skipped!`);
+		await this.scheduleJobs(cronJobsOnly);
 	}
 
 	async processJob(job:Job) {
 		if (job.trigger === JobTrigger.Event) {
-			let events:Event[] = [];
-			const stateModel = new JobStateModel();
-			const context = stateModel.parseContext(job.state);
-			for (const eventName of job.triggerSpec) {
-				const events = await this.eventService.eventsSince(eventName, context);
-				const result = await this.execScript(job, { events: events });
+			return; // DISABLED FOR NOW
 
-				// Create processed_events table - (id, job_id, event_id, success, error)
-				// Record result every time an event is processed
-				// Use numeric ID for events - check last event that was done and resume from there
+			// let events:Event[] = [];
+			// const stateModel = new JobStateModel();
+			// const context = stateModel.parseContext(job.state);
+			// for (const eventName of job.triggerSpec) {
+			// 	const events = await this.eventService.eventsSince(eventName, context);
+			// 	const result = await this.execScript(job, { events: events });
 
-				// context.events[eventName].lastEventIds
+			// 	// Create processed_events table - (id, job_id, event_id, success, error)
+			// 	// Record result every time an event is processed
+			// 	// Use numeric ID for events - check last event that was done and resume from there
 
-				// if (result.eventsProcessed.length === events.length) {
+			// 	// context.events[eventName].lastEventIds
 
-				// } else {
+			// 	// if (result.eventsProcessed.length === events.length) {
 
-				// }
-			}
+			// 	// } else {
+
+			// 	// }
+			// }
 		} else {
 			await this.execScript(job);
 		}
@@ -219,6 +242,7 @@ export default class JobService extends BaseService {
 	async processJobsThatNeedToRunNow() {
 		const jobs = await this.jobModel.all();
 		const needToRunJobs = await this.jobModel.jobsThatNeedToRunNow(jobs);
+		this.logger.info(`JobService: Running ${needToRunJobs.length} job(s) now`);
 		await this.processJobs(needToRunJobs);
 	}
 

@@ -64,6 +64,8 @@ export default class JobModel {
 
 		const newJobState = await jobStateModel.save({
 			job_id: jobId,
+			last_started: 0,
+			last_finished: 0,
 		});
 
 		return newJobState;
