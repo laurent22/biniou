@@ -15,6 +15,9 @@
     "db-migrate": "node dist/tools/db-migrate.js",
     "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
