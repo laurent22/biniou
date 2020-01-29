@@ -1,6 +1,6 @@
 {
   "name": "@laurent22/biniou",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Task automation utility",
   "repository": "https://github.com/laurent22/biniou/",
   "bin": "./dist/app/index.js",
