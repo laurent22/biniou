@@ -1,5 +1,5 @@
 {
-  "name": "biniou",
+  "name": "@laurent22/biniou",
   "version": "1.0.1",
   "description": "",
   "main": "dist/app/index.js",
