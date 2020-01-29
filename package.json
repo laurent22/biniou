@@ -15,7 +15,7 @@
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
     "db-migrate": "node dist/tools/db-migrate.js",
-    "postinstall": "gulp build",
+    "prepare": "gulp build",
     "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
   },
   "publishConfig": {
@@ -48,12 +48,12 @@
     "@typescript-eslint/parser": "^2.16.0",
     "eslint": "^6.8.0",
     "eslint-plugin-jasmine": "^4.1.0",
-    "gulp": "^4.0.2",
-    "gulp-typescript": "^6.0.0-alpha.1",
     "husky": "^4.0.10",
     "jasmine": "^3.5.0",
     "lint-staged": "^9.5.0",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1"
   },
   "dependencies": {
     "cron-parser": "^2.13.0",
