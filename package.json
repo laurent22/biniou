@@ -1,8 +1,9 @@
 {
   "name": "@laurent22/biniou",
   "version": "1.0.3",
-  "description": "",
-  "main": "dist/app/index.js",
+  "description": "Task automation utility",
+  "repository": "https://github.com/laurent22/biniou/",
+  "bin": "./dist/app/index.js",
   "scripts": {
     "test": "jasmine --config=tests/support/jasmine.json",
     "linter": "./node_modules/.bin/eslint --fix --ext .js --ext .jsx --ext .ts --ext .tsx",
@@ -10,9 +11,11 @@
     "start": "node dist/index.js",
     "tsc": "npx tsc --project tsconfig.json",
     "tsc-watch": "npx tsc --watch --project tsconfig.json",
+    "watch": "npx gulp watch",
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
     "db-migrate": "node dist/tools/db-migrate.js",
+    "postinstall": "gulp build",
     "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
   },
   "publishConfig": {
@@ -45,6 +48,8 @@
     "@typescript-eslint/parser": "^2.16.0",
     "eslint": "^6.8.0",
     "eslint-plugin-jasmine": "^4.1.0",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "husky": "^4.0.10",
     "jasmine": "^3.5.0",
     "lint-staged": "^9.5.0",
