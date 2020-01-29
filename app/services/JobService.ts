@@ -255,7 +255,6 @@ export default class JobService extends BaseService {
 	async start() {
 		await this.processJobsThatNeedToRunNow();
 		await this.scheduleAllJobs();
-		while (true) await sleep(60);
 	}
 
 }

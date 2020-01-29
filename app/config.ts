@@ -1,17 +1,22 @@
 import * as fs from 'fs-extra';
+const envPaths = require('env-paths');
 
 class Config {
 
-	rootDir_:string;
+	configDir_:string;
+	dataDir_:string;
 	env_:string;
 	argv_:any;
 
-	async load(env:string, argv:any, rootDir:string = null) {
+	async load(env:string, argv:any) {
 		this.env_ = env;
 		this.argv_ = argv;
-		if (!rootDir) rootDir = this.defaultRootDir();
-		this.rootDir_ = rootDir;
-		await fs.mkdirp(this.rootDir_);
+		this.configDir_ = this.defaultConfigDir();
+		this.dataDir_ = this.defaultDataDir();
+
+		await fs.mkdirp(this.configDir);
+		await fs.mkdirp(this.dataDir);
+		await fs.mkdirp(this.jobsDir);
 	}
 
 	get env():string {
@@ -24,18 +29,29 @@ class Config {
 		return this.argv_[name];
 	}
 
-	private defaultRootDir():string {
+	private defaultConfigDir():string {
 		let dirname = 'biniou';
 		if (this.env !== 'prod') dirname += `-${this.env}`;
 		return `${require('os').homedir()}/.config/${dirname}`;
 	}
 
-	get rootDir() {
-		return this.rootDir_;
+	private defaultDataDir():string {
+		let dirname = 'biniou';
+		if (this.env !== 'prod') dirname += `-${this.env}`;
+		const paths = envPaths(dirname, {suffix: ''});
+		return paths.data;
+	}
+
+	get configDir() {
+		return this.configDir_;
+	}
+
+	get dataDir() {
+		return this.dataDir_;
 	}
 
 	get dbFilePath() {
-		return `${this.rootDir}/database.sqlite`;
+		return `${this.dataDir}/database.sqlite`;
 	}
 
 	jobDir(jobId:string):string {
@@ -43,7 +59,7 @@ class Config {
 	}
 
 	get jobsDir() {
-		return `${this.rootDir}/jobs`;
+		return `${this.configDir}/jobs`;
 	}
 
 }

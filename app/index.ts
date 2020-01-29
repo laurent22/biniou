@@ -11,8 +11,6 @@ import { setupDatabase } from './db';
 import { sleep } from './utils/timeUtils';
 import TaskQueue from './utils/TaskQueue';
 
-const nodeEnvFile = require('node-env-file');
-
 async function exitProcess(code:number) {
 	await services.eventService.waitForDispatches();
 	process.exit(code);
@@ -85,7 +83,7 @@ async function main() {
 
 	await setupDatabase({
 		connection: {
-			filename: `${config.rootDir}/database.sqlite`,
+			filename: config.dbFilePath,
 		},
 	});
 
