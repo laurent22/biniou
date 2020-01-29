@@ -35,7 +35,7 @@ function setupCommands():any {
 	}
 
 	yargs.option('env', {
-		default: process.env.BINIOU_ENV,
+		default: process.env.BINIOU_ENV ? process.env.BINIOU_ENV : 'prod',
 		type: 'string',
 		choices: ['dev', 'prod'],
 		hidden: true,
