@@ -18,6 +18,6 @@ export default abstract class BaseCommand {
 		return [];
 	}
 
-	async abstract run(argv:any):Promise<void>;
+	abstract run(argv:any):Promise<void>;
 
 }

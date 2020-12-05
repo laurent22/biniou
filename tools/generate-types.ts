@@ -98,24 +98,24 @@ function createRuntimeObject(table:any) {
 	return `\t${table.name}: {\n${colStrings.join('\n')}\n\t},`;
 }
 
-function execCommand(command:string, options:any = null) {
-	if (!options) options = {};
-	const exec = require('child_process').exec;
+// function execCommand(command:string, options:any = null) {
+// 	if (!options) options = {};
+// 	const exec = require('child_process').exec;
 
-	return new Promise((resolve, reject) => {
-		exec(command, options, (error:any, stdout:any) => {
-			if (error) {
-				if (error.signal == 'SIGTERM') {
-					resolve('Process was killed');
-				} else {
-					reject(error);
-				}
-			} else {
-				resolve(stdout.trim());
-			}
-		});
-	});
-}
+// 	return new Promise((resolve, reject) => {
+// 		exec(command, options, (error:any, stdout:any) => {
+// 			if (error) {
+// 				if (error.signal == 'SIGTERM') {
+// 					resolve('Process was killed');
+// 				} else {
+// 					reject(error);
+// 				}
+// 			} else {
+// 				resolve(stdout.trim());
+// 			}
+// 		});
+// 	});
+// }
 
 async function main() {
 	// Create a new blank database and close it

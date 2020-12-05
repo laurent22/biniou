@@ -10,8 +10,6 @@ import services from './services';
 import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
 import { setupDatabase } from './db';
-import { sleep } from './utils/timeUtils';
-import TaskQueue from './utils/TaskQueue';
 
 async function exitProcess(code:number) {
 	await services.eventService.waitForDispatches();

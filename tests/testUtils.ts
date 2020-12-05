@@ -2,35 +2,37 @@ require('source-map-support').install();
 
 import * as fs from 'fs-extra';
 import db, { setupDatabase, closeDatabase, databaseReady } from '../app/db';
+import uuidgen from '../app/utils/uuidgen';
+import * as path from 'path';
 
-export const supportDir = `${__dirname}/../../tests/support`;
-export const dataDir = `${__dirname}/../../tests/support`;
+const suiteId_:string = uuidgen();
 
-fs.mkdirpSync(dataDir);
+let dataDir_:string = null;
 
-// Wrap an async test in a try/catch block so that done() is always called
-// and display a proper error message instead of "unhandled promise error"
-export const asyncTest = function(callback:Function) {
-	return async function(done:Function) {
-		try {
-			await callback();
-		} catch (error) {
-			if (error.constructor.name === 'ExpectationFailed') {
-				// ExpectationFailed are handled correctly by Jasmine
-			} else {
-				console.error(error);
-				expect('0').toBe('1', 'Test has thrown an exception - see above error');
-			}
-		} finally {
-			done();
-		}
-	};
-};
+async function dataDir():Promise<string> {
+	if (dataDir_) return dataDir_;
+	dataDir_ = path.resolve(__dirname, '../../tests/data/', suiteId_);
+	await fs.mkdirp(dataDir_);
+	return dataDir_;
+}
+
+export async function afterAllCleanUp() {
+	try {
+		await closeDatabase();
+	} catch (error) {
+		// `closeDatabase()` will throw if the database is not open
+	}
+
+	if (dataDir_) {
+		await fs.remove(dataDir_);
+		dataDir_ = null;
+	}
+}
 
 export const initDatabase = async function() {
 	if (databaseReady()) await clearDatabase();
 
-	const dbPath = `${dataDir}/database-test.sqlite`;
+	const dbPath = `${await dataDir()}/database.sqlite`;
 	await fs.remove(dbPath);
 
 	const dbOptions = {
