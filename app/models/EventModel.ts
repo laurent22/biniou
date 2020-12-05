@@ -12,6 +12,9 @@ export default class EventModel extends BaseModel {
 	}
 
 	async eventsSince(eventName:string, sinceDate:number, sinceIds:string[], limit:number = 100):Promise<Event[]> {
+		// TODO: Use where clause
+		// eventsSince(eventName, eventId, limit)
+
 		const results = await this
 			.db(this.tableName)
 			.select(this.defaultFields)

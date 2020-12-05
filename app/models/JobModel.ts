@@ -28,6 +28,7 @@ export default class JobModel {
 			id: basename(path),
 			type: o.type,
 			state: await this.loadState_(id),
+			enabled: ('enabled' in o) ? !!o.enabled : true,
 		};
 
 		if (o.trigger) job.trigger = o.trigger;
@@ -42,6 +43,11 @@ export default class JobModel {
 		this.cache_[id] = job;
 
 		return job;
+	}
+
+	public async allEnabled():Promise<Job[]> {
+		const output = await this.all();
+		return output.filter(job => job.enabled);
 	}
 
 	async all():Promise<Job[]> {
@@ -100,6 +106,7 @@ export default class JobModel {
 		const output:Job[] = [];
 		for (const job of jobs) {
 			if (job.trigger !== JobTrigger.Cron) continue;
+			if (!job.enabled) continue;
 			const lastRunDate = job.state.last_started;
 			const shouldHaveRanDate = this.previousIterationDate(job);
 			if (lastRunDate < shouldHaveRanDate.getTime()) output.push(job);

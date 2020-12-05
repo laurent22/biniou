@@ -21,9 +21,19 @@ export async function up(knex: Knex): Promise<any> {
 		table.integer('created_time').notNullable();
 		table.integer('updated_time').notNullable();
 	});
+
+	await knex.schema.createTable('processed_events', function(table:Knex.CreateTableBuilder) {
+		table.string('id', 22).unique().primary().notNullable();
+		table.string('job_id', 128).notNullable();
+		table.string('event_id', 22).notNullable();
+		table.integer('success').defaultTo(0).notNullable();
+		table.string('error', 4096).defaultTo('').notNullable();
+	});
 }
 
 export async function down(knex: Knex): Promise<any> {
 	await knex.schema.dropTable('events');
+	await knex.schema.dropTable('job_states');
+	await knex.schema.dropTable('processed_events');
 }
 

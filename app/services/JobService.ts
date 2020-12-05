@@ -173,6 +173,8 @@ export default class JobService extends BaseService {
 
 		const jobTaskId = `${job.id}_${Date.now()}_${Math.random()}`;
 
+		this.logger.info(`Scheduling: ${job.id}`);
+
 		if (job.trigger === JobTrigger.Cron) {
 			this.scheduledJobs_[job.id] = schedule.scheduleJob(job.triggerSpec, () => {
 				this.jobQueue_.push(jobTaskId, async () => {
@@ -199,34 +201,34 @@ export default class JobService extends BaseService {
 
 	async scheduleAllJobs() {
 		const jobs = await this.jobModel.all();
-		const cronJobsOnly = jobs.filter(j => j.trigger === JobTrigger.Cron);
-		this.logger.info(`JobService: Scheduling ${cronJobsOnly.length} cron job(s). Other jobs are skipped!`);
-		await this.scheduleJobs(cronJobsOnly);
+		const enabledJobs = jobs.filter(j => j.enabled);
+		const disabledCount = jobs.length - enabledJobs.length;
+		this.logger.info(`JobService: Scheduling ${enabledJobs.length} job(s). ${disabledCount} job(s) disabled.`);
+		await this.scheduleJobs(enabledJobs);
 	}
 
 	async processJob(job:Job) {
 		if (job.trigger === JobTrigger.Event) {
-			return; // DISABLED FOR NOW
 
-			// let events:Event[] = [];
-			// const stateModel = new JobStateModel();
-			// const context = stateModel.parseContext(job.state);
-			// for (const eventName of job.triggerSpec) {
-			// 	const events = await this.eventService.eventsSince(eventName, context);
-			// 	const result = await this.execScript(job, { events: events });
+			let events:Event[] = [];
+			const stateModel = new JobStateModel();
+			const context = stateModel.parseContext(job.state);
+			for (const eventName of job.triggerSpec) {
+				const events = await this.eventService.eventsSince(eventName, context);
+				// const result = await this.execScript(job, { events: events });
 
-			// 	// Create processed_events table - (id, job_id, event_id, success, error)
-			// 	// Record result every time an event is processed
-			// 	// Use numeric ID for events - check last event that was done and resume from there
+				// Create processed_events table - (id, job_id, event_id, success, error)
+				// Record result every time an event is processed
+				// Use numeric ID for events - check last event that was done and resume from there
 
-			// 	// context.events[eventName].lastEventIds
+				// context.events[eventName].lastEventIds
 
-			// 	// if (result.eventsProcessed.length === events.length) {
+				// if (result.eventsProcessed.length === events.length) {
 
-			// 	// } else {
+				// } else {
 
-			// 	// }
-			// }
+				// }
+			}
 		} else {
 			await this.execScript(job);
 		}
@@ -248,13 +250,16 @@ export default class JobService extends BaseService {
 
 	private async processEventJobs() {
 		const jobModel = new JobModel();
-		const jobs = await jobModel.all();
-		return this.processJobs(jobs, JobTrigger.Event);
+		const jobs = await jobModel.allEnabled();
+		const eventJobs = jobs.filter(job => job.trigger === JobTrigger.Event);
+		this.logger.info(`JobService: Processing ${eventJobs.length} event job(s)...`);
+		return this.processJobs(eventJobs);
 	}
 
 	async start() {
 		await this.processJobsThatNeedToRunNow();
 		await this.scheduleAllJobs();
+		await this.processEventJobs();
 	}
 
 }

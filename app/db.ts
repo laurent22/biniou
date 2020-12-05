@@ -128,6 +128,7 @@ export interface Job {
 	input?: string;
 	scriptFile?: string;
 	script?: string;
+	enabled: boolean;
 }
 
 // AUTO-GENERATED-TYPES
