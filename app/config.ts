@@ -1,6 +1,11 @@
 import * as fs from 'fs-extra';
 const envPaths = require('env-paths');
 
+interface LoadOptions {
+	configDir?: string;
+	dataDir?: string;
+}
+
 class Config {
 
 	configDir_:string;
@@ -8,11 +13,17 @@ class Config {
 	env_:string;
 	argv_:any;
 
-	async load(env:string, argv:any) {
+	async load(env:string, argv:any, options:LoadOptions = null) {
+		options = {
+			configDir: this.defaultConfigDir(),
+			dataDir: this.defaultDataDir(),
+			...options,
+		};
+
 		this.env_ = env;
 		this.argv_ = argv;
-		this.configDir_ = this.defaultConfigDir();
-		this.dataDir_ = this.defaultDataDir();
+		this.configDir_ = options.configDir;
+		this.dataDir_ = options.dataDir;
 
 		await fs.mkdirp(this.configDir);
 		await fs.mkdirp(this.dataDir);

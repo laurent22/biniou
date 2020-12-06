@@ -1,17 +1,17 @@
-import { afterAllCleanUp, initDatabase } from '../../tests/testUtils';
+import { afterAllSetup, beforeEachSetup, initDatabase } from '../../tests/testUtils';
 import EventModel from './EventModel';
 import { msleep } from '../utils/timeUtils';
 import { Event } from '../db';
 import { SaveOptions } from './BaseModel';
 
-describe('EventModelTest', function() {
+describe('EventModel', function() {
 
 	beforeEach(async () => {
-		await initDatabase();
+		await beforeEachSetup();
 	});
 
 	afterAll(async () => {
-		await afterAllCleanUp();
+		await afterAllSetup();
 	});
 
 	it('should return last events 2', async function() {

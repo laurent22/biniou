@@ -4,6 +4,7 @@ import * as fs from 'fs-extra';
 import db, { setupDatabase, closeDatabase, databaseReady } from '../app/db';
 import uuidgen from '../app/utils/uuidgen';
 import * as path from 'path';
+import config from '../app/config';
 
 const suiteId_:string = uuidgen();
 
@@ -16,7 +17,16 @@ async function dataDir():Promise<string> {
 	return dataDir_;
 }
 
-export async function afterAllCleanUp() {
+export async function beforeEachSetup() {
+	await config.load('test', {}, {
+		configDir: await dataDir(),
+		dataDir: await dataDir(),
+	});
+
+	await initDatabase();
+}
+
+export async function afterAllSetup() {
 	try {
 		await closeDatabase();
 	} catch (error) {

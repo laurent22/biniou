@@ -242,7 +242,7 @@ export default class JobService extends BaseService {
 	}
 
 	async processJobsThatNeedToRunNow() {
-		const jobs = await this.jobModel.all();
+		const jobs = await this.jobModel.allEnabled();
 		const needToRunJobs = await this.jobModel.jobsThatNeedToRunNow(jobs);
 		this.logger.info(`JobService: Running ${needToRunJobs.length} job(s) now`);
 		await this.processJobs(needToRunJobs);
