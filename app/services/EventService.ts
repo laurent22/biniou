@@ -2,13 +2,13 @@ import BaseService from './BaseService';
 import { Event, EventBodyType } from '../db';
 import md5 = require('md5');
 import EventModel from '../models/EventModel';
-import { JobStateContext } from '../models/JobStateModel';
+import JobResultModel from '../models/JobResultModel';
 
 export default class EventService extends BaseService {
 
 	dispatchCount_:number = 0;
 
-	async waitForDispatches():Promise<boolean> {
+	public async waitForDispatches():Promise<boolean> {
 		return new Promise((resolve) => {
 			const iid = setInterval(() => {
 				clearInterval(iid);
@@ -17,7 +17,7 @@ export default class EventService extends BaseService {
 		});
 	}
 
-	async dispatchEvent(jobId:string, eventName:string, eventBody:any, options:any = {}):Promise<boolean> {
+	public async dispatchEvent(jobId:string, eventName:string, eventBody:any, options:any = {}):Promise<boolean> {
 		this.dispatchCount_++;
 
 		options = Object.assign({
@@ -58,15 +58,16 @@ export default class EventService extends BaseService {
 		return true;
 	}
 
-	async eventsSince(eventName:string, context:JobStateContext):Promise<Event[]> {
+	public async nextEvents(jobId:string, eventName:string):Promise<Event[]> {
+		const jobResultModel = new JobResultModel();
+		const lastJobResult = await jobResultModel.lastByJobAndEvent(jobId, eventName);
 		const eventModel:EventModel = new EventModel();
-		return eventModel.eventsSince2(eventName, null, 0);
 
-		// const eventModel:EventModel = new EventModel();
-		// const c = context.events[eventName];
-		// const sinceTime = c && c.lastTimestamp ? c.lastTimestamp : 0;
-		// const sinceHashes = c && c.lastEventIds ? c.lastEventIds : [];
-		// return eventModel.eventsSince(eventName, sinceTime, sinceHashes);
+		return eventModel.eventsSince2(
+			eventName,
+			lastJobResult ? lastJobResult.event_id : null,
+			lastJobResult ? lastJobResult.created_time : 0,
+		);
 	}
 
 }

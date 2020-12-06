@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
-import { Job, Event, JobTrigger, JobType, ProcessedEvent } from '../db';
+import { Job, Event, JobTrigger, JobType, JobResult } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
@@ -10,15 +10,22 @@ import JobStateModel from '../models/JobStateModel';
 import fetch from 'node-fetch';
 import TaskQueue from '../utils/TaskQueue';
 import Logger from '../utils/Logger';
-import {sleep} from '../utils/timeUtils';
+import {msleep, sleep} from '../utils/timeUtils';
 import * as Twitter from 'twitter';
-import ProcessedEventModel from '../models/ProcessedEventModel';
+import JobResultModel from '../models/JobResultModel';
+import EventModel from '../models/EventModel';
 
 const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
 
 interface ExecScriptOptions {
-	events:Event[],
+	events? :Event[],
+	params? : any,
+}
+
+interface JobContext {
+	params: any,
+	event?: Event;
 }
 
 interface ScheduledJobs {
@@ -63,7 +70,36 @@ export default class JobService extends BaseService {
 		return output.join('\n');
 	}
 
+	private async execJobRunFunction(runFn:Function, jobId:string, context:JobContext) {
+		let processingError = null;
+		let success = true;
+
+		try {
+			await runFn(context);
+		} catch (error) {
+			processingError = error;
+			success = false;
+		}
+
+		const jobResult:JobResult = {
+			job_id: jobId,
+			event_id: context.event ? context.event.id : '',
+			event_created_time: context.event ? context.event.created_time : 0,
+			success: success ? 1 : 0,
+			error: this.serializeError(processingError),
+		};
+
+		const processEventModel = new JobResultModel();
+		await processEventModel.save(jobResult);
+	}
+
 	private async execScript(job:Job, options:ExecScriptOptions = null):Promise<void> {
+		options = {
+			events: [],
+			params: {},
+			...options,
+		};
+
 		if (job.type === 'shell') {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
@@ -143,40 +179,34 @@ export default class JobService extends BaseService {
 
 			const result = vm.runInContext(scriptContent, sandbox);
 
-			const processEventModel = new ProcessedEventModel();
-
 			if (result.run) {
 				await this.jobModel.saveState(job.state.id, { last_started: Date.now() });
 
 				const startTime = Date.now();
 
+				const jobContext:JobContext = { params: options.params };
+
 				try {
 					this.logger.info(`Starting job: ${job.id}`);
+
 					if (job.trigger === JobTrigger.Event) {
 						this.logger.info(`Number of events: ${options.events.length}`);
+
 						for (let event of options.events) {
-							let processingError = null;
-							let success = true;
-							try {
-								await result.run(event);
-							} catch (error) {
-								processingError = error;
-								success = false;
-							}
-
-							const processedEvent:ProcessedEvent = {
-								job_id: job.id,
-								event_id: event.id,
-								event_created_time: event.created_time,
-								success: success ? 1 : 0,
-								error: this.serializeError(processingError),
-							};
-
-							await processEventModel.save(processedEvent);
+							await this.execJobRunFunction(
+								result.run,
+								job.id,
+								{ ...jobContext, event },
+							);
 						}
 					} else {
-						await result.run(null);
+						await this.execJobRunFunction(
+							result.run,
+							job.id,
+							jobContext,
+						);
 					}
+
 					this.logger.info(`Events: Dispatched: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
 				} catch (error) {
 					// For some reason, error thrown from the executed script do not have the type "Error"
@@ -233,31 +263,16 @@ export default class JobService extends BaseService {
 		await this.scheduleJobs(enabledJobs);
 	}
 
-	public async processJob(job:Job) {
+	public async processJob(job:Job, params:any = null) {
+		params = params || {};
+
 		if (job.trigger === JobTrigger.Event) {
-
-			let events:Event[] = [];
-			const stateModel = new JobStateModel();
-			const context = stateModel.parseContext(job.state);
 			for (const eventName of job.triggerSpec) {
-				const events = await this.eventService.eventsSince(eventName, context);
-				await this.execScript(job, { events });
-
-
-				// Create processed_events table - (id, job_id, event_id, success, error)
-				// Record result every time an event is processed
-				// Use numeric ID for events - check last event that was done and resume from there
-
-				// context.events[eventName].lastEventIds
-
-				// if (result.eventsProcessed.length === events.length) {
-
-				// } else {
-
-				// }
+				const events = await this.eventService.nextEvents(job.id, eventName);
+				await this.execScript(job, { events, params });
 			}
 		} else {
-			await this.execScript(job);
+			await this.execScript(job, { params });
 		}
 	}
 

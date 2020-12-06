@@ -146,13 +146,12 @@ export interface JobState {
 	job_id?: string
 	last_started?: number
 	last_finished?: number
-	context?: string
 	created_time?: number
 	updated_time?: number
 }
 
-export interface ProcessedEvent {
-	id?: string
+export interface JobResult {
+	id?: number
 	job_id?: string
 	event_id?: string
 	event_created_time?: number
@@ -178,12 +177,11 @@ export const databaseSchema:DatabaseTables = {
 		job_id: { type: 'string' },
 		last_started: { type: 'number' },
 		last_finished: { type: 'number' },
-		context: { type: 'string' },
 		created_time: { type: 'number' },
 		updated_time: { type: 'number' },
 	},
-	processed_events: {
-		id: { type: 'string' },
+	job_results: {
+		id: { type: 'number' },
 		job_id: { type: 'string' },
 		event_id: { type: 'string' },
 		event_created_time: { type: 'number' },

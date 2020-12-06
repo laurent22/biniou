@@ -1,4 +1,4 @@
-require('source-map-support').install();
+// require('source-map-support').install();
 
 import * as fs from 'fs-extra';
 import db, { setupDatabase, closeDatabase, databaseReady } from '../app/db';

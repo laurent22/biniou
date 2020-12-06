@@ -1,4 +1,4 @@
-import db, { WithDates, WithUuid, Event, Job, JobState, databaseSchema } from '../db';
+import db, { WithDates, WithUuid, Event, Job, JobState, databaseSchema, JobResult } from '../db';
 import * as Knex from 'knex';
 import uuidgen from '../utils/uuidgen';
 import { ErrorUnprocessableEntity, ErrorBadRequest } from '../utils/errors';
@@ -36,6 +36,10 @@ export default abstract class BaseModel {
 		this.db_ = db();
 	}
 
+	protected hasUuid():boolean {
+		return true;
+	}
+
 	private get transactionHandler():TransactionHandler {
 		if (this.transactionHandler_) return this.transactionHandler_;
 		this.transactionHandler_ = new TransactionHandler(this.db_);
@@ -53,7 +57,9 @@ export default abstract class BaseModel {
 
 	get defaultFields():string[] {
 		if (!this.defaultFields_.length) {
-			this.defaultFields_ = Object.keys(databaseSchema[this.tableName]);
+			const schema = databaseSchema[this.tableName];
+			if (!schema) throw new Error(`Invalid table name: ${this.tableName}`);
+			this.defaultFields_ = Object.keys(schema);
 		}
 		return this.defaultFields_.slice();
 	}
@@ -78,11 +84,11 @@ export default abstract class BaseModel {
 		return this.transactionHandler.rollback(txIndex);
 	}
 
-	async all():Promise<Event[] | Job[]> {
+	async all():Promise<Event[] | Job[] | JobState[] | JobResult[]> {
 		return this.db(this.tableName).select(...this.defaultFields);
 	}
 
-	async fromApiInput(object:Event | Job | JobState):Promise<Event | Job | JobState> {
+	async fromApiInput(object:Event | Job | JobState | JobResult):Promise<Event | Job | JobState | JobResult> {
 		return object;
 	}
 
@@ -90,18 +96,18 @@ export default abstract class BaseModel {
 		return { ...object };
 	}
 
-	async validate(object:Event | Job | JobState, options:ValidateOptions = {}):Promise<Event | Job | JobState> {
+	async validate(object:Event | Job | JobState | JobResult, options:ValidateOptions = {}):Promise<Event | Job | JobState | JobResult> {
 		if (!options.isNew && !(object as WithUuid).id) throw new ErrorUnprocessableEntity('id is missing');
 		return object;
 	}
 
-	async isNew(object:Event | Job | JobState, options:SaveOptions):Promise<boolean> {
+	async isNew(object:Event | Job | JobState | JobResult, options:SaveOptions):Promise<boolean> {
 		if (options.isNew === false) return false;
 		if (options.isNew === true) return true;
 		return !(object as WithUuid).id;
 	}
 
-	async save(object:Event | Job | JobState, options:SaveOptions = {}):Promise<Event | Job | JobState> {
+	async save(object:Event | Job | JobState | JobResult, options:SaveOptions = {}):Promise<Event | Job | JobState | JobResult> {
 		if (!object) throw new Error('Object cannot be empty');
 		if (options.autoTimestamp === undefined) options.autoTimestamp = true;
 
@@ -109,7 +115,7 @@ export default abstract class BaseModel {
 
 		const isNew = await this.isNew(object, options);
 
-		if (isNew && !(toSave as WithUuid).id) {
+		if (isNew && !(toSave as WithUuid).id && this.hasUuid()) {
 			(toSave as WithUuid).id = uuidgen();
 		}
 
@@ -140,7 +146,7 @@ export default abstract class BaseModel {
 		return toSave;
 	}
 
-	async load(id:string):Promise<Event | Job | JobState> {
+	async load(id:string):Promise<Event | Job | JobState | JobResult> {
 		if (!id) throw new Error('id cannot be empty');
 
 		return this.db(this.tableName).select(this.defaultFields).where({ id: id }).first();

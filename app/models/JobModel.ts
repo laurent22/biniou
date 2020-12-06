@@ -72,7 +72,7 @@ export default class JobModel {
 			job_id: jobId,
 			last_started: 0,
 			last_finished: 0,
-		});
+		}) as JobState;
 
 		return newJobState;
 	}

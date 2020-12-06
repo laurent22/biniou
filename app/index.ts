@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require('source-map-support').install();
+// require('source-map-support').install();
 require('dotenv').config();
 
 import config from './config';
