@@ -60,10 +60,13 @@ export default class EventService extends BaseService {
 
 	async eventsSince(eventName:string, context:JobStateContext):Promise<Event[]> {
 		const eventModel:EventModel = new EventModel();
-		const c = context.events[eventName];
-		const sinceTime = c && c.lastTimestamp ? c.lastTimestamp : 0;
-		const sinceHashes = c && c.lastEventIds ? c.lastEventIds : [];
-		return eventModel.eventsSince(eventName, sinceTime, sinceHashes);
+		return eventModel.eventsSince2(eventName, null, 0);
+
+		// const eventModel:EventModel = new EventModel();
+		// const c = context.events[eventName];
+		// const sinceTime = c && c.lastTimestamp ? c.lastTimestamp : 0;
+		// const sinceHashes = c && c.lastEventIds ? c.lastEventIds : [];
+		// return eventModel.eventsSince(eventName, sinceTime, sinceHashes);
 	}
 
 }

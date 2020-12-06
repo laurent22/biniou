@@ -120,9 +120,14 @@ export default class JobService extends BaseService {
 					return page.$$eval(selector, callback);
 				};
 
+				biniou.require = (filePath:string):any => {
+					return require(filePath);
+				};
+
 				return {
 					console: console,
 					fetch: fetch,
+					require: (filePath:string):any => require(filePath),
 					biniou: biniou,
 				};
 			}(this));
@@ -215,7 +220,8 @@ export default class JobService extends BaseService {
 			const context = stateModel.parseContext(job.state);
 			for (const eventName of job.triggerSpec) {
 				const events = await this.eventService.eventsSince(eventName, context);
-				// const result = await this.execScript(job, { events: events });
+				const result = await this.execScript(job, { events });
+				
 
 				// Create processed_events table - (id, job_id, event_id, success, error)
 				// Record result every time an event is processed

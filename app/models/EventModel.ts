@@ -15,7 +15,7 @@ export default class EventModel extends BaseModel {
 		return this.db(this.tableName).select(this.defaultFields).where({ job_id: jobId });
 	}
 
-	public async eventsSince2(eventName:string, eventId:string, eventCreatedTime:number, limit:number = 10):Promise<Event[]> {
+	public async eventsSince2(eventName:string, eventId:string, eventCreatedTime:number, limit:number = 10):Promise<Event[]> {		
 		if (!eventId) {
 			return this
 				.db(this.tableName)
@@ -63,20 +63,6 @@ export default class EventModel extends BaseModel {
 					.limit(limit);
 			}
 		}
-	}
-
-	async eventsSince(eventName:string, sinceDate:number, sinceIds:string[], limit:number = 100):Promise<Event[]> {
-		const results = await this
-			.db(this.tableName)
-			.select(this.defaultFields)
-			.where('name', '=', eventName)
-			.where('created_time', '>=', sinceDate)
-			.limit(limit);
-
-		return results.filter((e:Event) => {
-			if (e.created_time > sinceDate) return true;
-			return !sinceIds.includes(e.id);
-		});
 	}
 
 }
