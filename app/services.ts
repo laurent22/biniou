@@ -8,16 +8,16 @@ class Services {
 	jobService_:JobService;
 	eventService_:EventService;
 
-	get logger():Logger {
+	private get logger():Logger {
 		if (!this.logger_) {
 			this.logger_ = new Logger();
-			this.logger_.addTarget(TargetType.Console);
+			// this.logger_.addTarget(TargetType.Console);
 			this.logger_.addTarget(TargetType.EventLog);
 		}
 		return this.logger_;
 	}
 
-	get eventService():EventService {
+	public get eventService():EventService {
 		if (!this.eventService_) {
 			this.eventService_ = new EventService();
 			this.eventService_.setLogger(this.logger);
@@ -26,7 +26,7 @@ class Services {
 		return this.eventService_;
 	}
 
-	get jobService():JobService {
+	public get jobService():JobService {
 		if (!this.jobService_) {
 			this.jobService_ = new JobService(this.eventService);
 			this.jobService_.setLogger(this.logger);

@@ -207,7 +207,7 @@ export default class JobService extends BaseService {
 		await this.scheduleJobs(enabledJobs);
 	}
 
-	async processJob(job:Job) {
+	public async processJob(job:Job) {
 		if (job.trigger === JobTrigger.Event) {
 
 			let events:Event[] = [];

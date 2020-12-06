@@ -10,6 +10,8 @@ const suiteId_:string = uuidgen();
 
 let dataDir_:string = null;
 
+export const jobDir:string = path.resolve(__dirname, '../../tests/support/jobs');
+
 async function dataDir():Promise<string> {
 	if (dataDir_) return dataDir_;
 	dataDir_ = path.resolve(__dirname, '../../tests/data/', suiteId_);
