@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
-import { Job, Event, JobTrigger, JobType } from '../db';
+import { Job, Event, JobTrigger, JobType, ProcessedEvent } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
@@ -12,6 +12,7 @@ import TaskQueue from '../utils/TaskQueue';
 import Logger from '../utils/Logger';
 import {sleep} from '../utils/timeUtils';
 import * as Twitter from 'twitter';
+import ProcessedEventModel from '../models/ProcessedEventModel';
 
 const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
@@ -54,9 +55,15 @@ export default class JobService extends BaseService {
 		return this.jobModel_;
 	}
 
-	private async execScript(job:Job, options:ExecScriptOptions = null):Promise<any> {
-		const eventsProcessed = [];
+	private serializeError(error:any):string {
+		if (!error) return '';
+		const output = [];
+		if (error.message) output.push(error.message);
+		if (error.stack) output.push(error.stack);
+		return output.join('\n');
+	}
 
+	private async execScript(job:Job, options:ExecScriptOptions = null):Promise<void> {
 		if (job.type === 'shell') {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
@@ -136,6 +143,8 @@ export default class JobService extends BaseService {
 
 			const result = vm.runInContext(scriptContent, sandbox);
 
+			const processEventModel = new ProcessedEventModel();
+
 			if (result.run) {
 				await this.jobModel.saveState(job.state.id, { last_started: Date.now() });
 
@@ -146,8 +155,24 @@ export default class JobService extends BaseService {
 					if (job.trigger === JobTrigger.Event) {
 						this.logger.info(`Number of events: ${options.events.length}`);
 						for (let event of options.events) {
-							await result.run(event);
-							eventsProcessed.push(event.id);
+							let processingError = null;
+							let success = true;
+							try {
+								await result.run(event);
+							} catch (error) {
+								processingError = error;
+								success = false;
+							}
+
+							const processedEvent:ProcessedEvent = {
+								job_id: job.id,
+								event_id: event.id,
+								event_created_time: event.created_time,
+								success: success ? 1 : 0,
+								error: this.serializeError(processingError),
+							};
+
+							await processEventModel.save(processedEvent);
 						}
 					} else {
 						await result.run(null);
@@ -167,10 +192,6 @@ export default class JobService extends BaseService {
 				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
 		}
-
-		return {
-			eventsProcessed: eventsProcessed,
-		};
 	}
 
 	async scheduleJob(job:Job) {
@@ -220,8 +241,8 @@ export default class JobService extends BaseService {
 			const context = stateModel.parseContext(job.state);
 			for (const eventName of job.triggerSpec) {
 				const events = await this.eventService.eventsSince(eventName, context);
-				const result = await this.execScript(job, { events });
-				
+				await this.execScript(job, { events });
+
 
 				// Create processed_events table - (id, job_id, event_id, success, error)
 				// Record result every time an event is processed

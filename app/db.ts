@@ -158,6 +158,8 @@ export interface ProcessedEvent {
 	event_created_time?: number
 	success?: number
 	error?: string
+	created_time?: number
+	updated_time?: number
 }
 
 export const databaseSchema:DatabaseTables = {
@@ -187,6 +189,8 @@ export const databaseSchema:DatabaseTables = {
 		event_created_time: { type: 'number' },
 		success: { type: 'number' },
 		error: { type: 'string' },
+		created_time: { type: 'number' },
+		updated_time: { type: 'number' },
 	},
 };
 // AUTO-GENERATED-TYPES

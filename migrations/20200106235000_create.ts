@@ -29,6 +29,8 @@ export async function up(knex: Knex): Promise<any> {
 		table.integer('event_created_time').notNullable();
 		table.integer('success').defaultTo(0).notNullable();
 		table.string('error', 4096).defaultTo('').notNullable();
+		table.integer('created_time').notNullable();
+		table.integer('updated_time').notNullable();
 	});
 }
 
