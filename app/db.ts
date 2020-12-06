@@ -151,6 +151,15 @@ export interface JobState {
 	updated_time?: number
 }
 
+export interface ProcessedEvent {
+	id?: string
+	job_id?: string
+	event_id?: string
+	event_created_time?: number
+	success?: number
+	error?: string
+}
+
 export const databaseSchema:DatabaseTables = {
 	events: {
 		id: { type: 'string' },
@@ -170,6 +179,14 @@ export const databaseSchema:DatabaseTables = {
 		context: { type: 'string' },
 		created_time: { type: 'number' },
 		updated_time: { type: 'number' },
+	},
+	processed_events: {
+		id: { type: 'string' },
+		job_id: { type: 'string' },
+		event_id: { type: 'string' },
+		event_created_time: { type: 'number' },
+		success: { type: 'number' },
+		error: { type: 'string' },
 	},
 };
 // AUTO-GENERATED-TYPES
