@@ -30,7 +30,7 @@ export default class EventService extends BaseService {
 
 		if (!options.allowDuplicates) {
 			const existingEvent = await eventModel.loadByHash(hash);
-			if (existingEvent) return false;
+			if (existingEvent) return;
 		}
 
 		const now = Date.now();
