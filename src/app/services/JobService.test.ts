@@ -1,4 +1,4 @@
-import { afterAllSetup, beforeEachSetup, jobDir } from '../utils/testUtils';
+import { afterAllSetup, beforeEachSetup, installJob, jobDir } from '../utils/testUtils';
 import config from '../config';
 import JobModel from '../models/JobModel';
 import * as fs from 'fs-extra';
@@ -6,12 +6,6 @@ import services from '../services';
 import EventModel from '../models/EventModel';
 import JobResultModel from '../models/JobResultModel';
 import { JobResult } from '../db';
-
-async function installJob(jobName: string) {
-	await fs.copy(`${jobDir}/${jobName}`, `${config.jobsDir}/${jobName}`);
-	const jobModel = new JobModel();
-	return jobModel.load(jobName);
-}
 
 describe('JobService', function() {
 

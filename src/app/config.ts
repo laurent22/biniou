@@ -6,6 +6,7 @@ interface LoadOptions {
 	configDir?: string;
 	dataDir?: string;
 	assetDir?: string;
+	templatesDir?: string;
 }
 
 class Config {
@@ -70,8 +71,12 @@ class Config {
 		return this.assetDir_;
 	}
 
-	public get templateDir(): string {
+	public get templatesDir(): string {
 		return `${this.assetDir}/templates`;
+	}
+
+	public templateDir(template: string): string {
+		return `${this.templatesDir}/${template}`;
 	}
 
 	public get dbFilePath() {

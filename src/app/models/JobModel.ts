@@ -14,17 +14,14 @@ export default class JobModel {
 	private cache_: JobCache = {};
 	// private cacheAllDone_: boolean = false;
 
-	public async load(id: string): Promise<Job> {
-		if (this.cache_[id]) return this.cache_[id];
-
-		const path = config.jobDir(id);
+	private async loadFromPath(path: string): Promise<Job> {
 		const o: any = await loadJsonFromFile(`${path}/job.json`);
 
 		const job: Job = {
 			id: basename(path),
 			type: o.type,
-			state: await this.loadState_(id),
 			enabled: ('enabled' in o) ? !!o.enabled : true,
+			state: null,
 		};
 
 		if (o.trigger) job.trigger = o.trigger;
@@ -37,6 +34,29 @@ export default class JobModel {
 
 		if (job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
 		if (job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
+
+		return job;
+	}
+
+	public async load(id: string): Promise<Job> {
+		if (this.cache_[id]) return this.cache_[id];
+
+		const path = config.jobDir(id);
+		let job = await this.loadFromPath(path);
+		job.state = await this.loadState_(id);
+
+		if (job.template) {
+			const templatePath = config.templateDir(job.template);
+			const templateJob = await this.loadFromPath(templatePath);
+
+			job = {
+				...templateJob,
+				...job,
+			};
+
+			delete job.template;
+			if (!job.type) job.type = templateJob.type;
+		}
 
 		this.cache_[id] = job;
 
