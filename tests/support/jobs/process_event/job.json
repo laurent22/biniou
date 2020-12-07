@@ -1,0 +1,5 @@
+{
+	"type": "js",
+	"trigger": "event",
+	"triggerSpec": ["my_event"]
+}

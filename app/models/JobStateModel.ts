@@ -7,7 +7,7 @@ export default class JobStateModel extends BaseModel {
 		return 'job_states';
 	}
 
-	async loadByJobId(jobId:string):Promise<JobState> {
+	public async loadByJobId(jobId:string):Promise<JobState> {
 		return this.db(this.tableName).select(this.defaultFields).where({ job_id: jobId }).first();
 	}
 
