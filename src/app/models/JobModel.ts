@@ -12,6 +12,7 @@ interface JobCache {
 export default class JobModel {
 
 	private cache_: JobCache = {};
+	private templateCache_: JobCache = {};
 	// private cacheAllDone_: boolean = false;
 
 	private async loadFromPath(path: string): Promise<Job> {
@@ -21,7 +22,6 @@ export default class JobModel {
 			id: basename(path),
 			type: o.type,
 			enabled: ('enabled' in o) ? !!o.enabled : true,
-			state: null,
 		};
 
 		if (o.trigger) job.trigger = o.trigger;
@@ -38,6 +38,14 @@ export default class JobModel {
 		return job;
 	}
 
+	private async loadTemplate(id: string): Promise<Job> {
+		if (this.templateCache_[id]) return this.templateCache_[id];
+		const templatePath = config.templateDir(id);
+		const templateJob = await this.loadFromPath(templatePath);
+		this.templateCache_[id] = templateJob;
+		return templateJob;
+	}
+
 	public async load(id: string): Promise<Job> {
 		if (this.cache_[id]) return this.cache_[id];
 
@@ -46,15 +54,13 @@ export default class JobModel {
 		job.state = await this.loadState_(id);
 
 		if (job.template) {
-			const templatePath = config.templateDir(job.template);
-			const templateJob = await this.loadFromPath(templatePath);
+			const templateJob = await this.loadTemplate(job.template);
 
 			job = {
 				...templateJob,
 				...job,
 			};
 
-			delete job.template;
 			if (!job.type) job.type = templateJob.type;
 		}
 
@@ -108,6 +114,17 @@ export default class JobModel {
 		}
 
 		throw new Error(`Unsupported job trigger: ${job.trigger}`);
+	}
+
+	public async scriptPath(job: Job): Promise<string> {
+		const defaultFilename = 'index.js';
+
+		if (job.template) {
+			const template = await this.loadTemplate(job.template);
+			return `${config.templateDir(job.template)}/${template.scriptFile || defaultFilename}`;
+		}
+
+		return `${config.jobDir(job.id)}/${job.scriptFile || defaultFilename}`;
 	}
 
 	// private nextIterationDate(job:Job):Date {

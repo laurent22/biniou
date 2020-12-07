@@ -121,10 +121,10 @@ export enum EventBodyType {
 
 export interface Job {
 	id: string;
-	type: JobType;
+	type?: JobType;
 	trigger?: JobTrigger;
 	triggerSpec?: JobTriggerSpec;
-	state: JobState;
+	state?: JobState;
 	input?: string;
 	scriptFile?: string;
 	script?: string;

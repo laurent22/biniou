@@ -54,10 +54,10 @@ export default class Logger {
 
 	public static create(prefix: string): LoggerWrapper {
 		return {
-			debug: (...object: any[]) => this.globalLogger.log(LogLevel.Debug, prefix, ...object),
-			info: (...object: any[]) => this.globalLogger.log(LogLevel.Info, prefix, ...object),
-			warn: (...object: any[]) => this.globalLogger.log(LogLevel.Warn, prefix, ...object),
-			error: (...object: any[]) => this.globalLogger.log(LogLevel.Error, prefix, ...object),
+			debug: (...object: any[]) => this.globalLogger.log(LogLevel.Debug, `${prefix}:`, ...object),
+			info: (...object: any[]) => this.globalLogger.log(LogLevel.Info, `${prefix}:`, ...object),
+			warn: (...object: any[]) => this.globalLogger.log(LogLevel.Warn, `${prefix}:`, ...object),
+			error: (...object: any[]) => this.globalLogger.log(LogLevel.Error, `${prefix}:`, ...object),
 			jobInfo: (jobId: string, ...object: any[]) => this.globalLogger.jobInfo(jobId, ...object),
 			jobWarn: (jobId: string, ...object: any[]) => this.globalLogger.jobWarn(jobId, ...object),
 			jobError: (jobId: string, ...object: any[]) => this.globalLogger.jobError(jobId, ...object),
@@ -104,9 +104,9 @@ export default class Logger {
 	private objectsToString(...object: any[]): string {
 		let output = [];
 		for (let i = 0; i < object.length; i++) {
-			output.push(`"${this.objectToString(object[i])}"`);
+			output.push(`${this.objectToString(object[i])}`);
 		}
-		return output.join(', ');
+		return output.join(' ');
 	}
 
 	private targetLevel(target: LoggerTarget) {

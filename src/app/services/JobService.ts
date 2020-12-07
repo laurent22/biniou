@@ -1,20 +1,15 @@
 import * as fs from 'fs-extra';
-import config from '../config';
 import * as vm from 'vm';
 import * as puppeteer from 'puppeteer';
 import { Job, Event, JobTrigger, JobResult } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
-// import JobStateModel from '../models/JobStateModel';
 import fetch from 'node-fetch';
 import TaskQueue from '../utils/TaskQueue';
-// import Logger from '../utils/Logger';
-// import {msleep, sleep} from '../utils/timeUtils';
 import * as Twitter from 'twitter';
 import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
-// import EventModel from '../models/EventModel';
 
 const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
@@ -107,14 +102,16 @@ export default class JobService extends BaseService {
 			// const result = await execCommand(job.script);
 			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
 		} else if (job.type === 'js') {
-			const scriptFile = job.scriptFile ? job.scriptFile : 'index.js';
-			const scriptPath = `${config.jobDir(job.id)}/${scriptFile}`;
+			const jobModel = new JobModel();
+
+			const scriptPath = await jobModel.scriptPath(job);
 			const scriptContent = (await fs.readFile(scriptPath)).toString();
 
 			const sandbox = (function(that: JobService) {
 				let browser_: puppeteer.Browser = null;
 				let rssParser_: any = null;
 				let twitterClients_: any = {};
+				const jobLogger = Logger.create(`Job #${job.id}`);
 
 				const biniou: any = {
 					dispatchEventCount_: 0,
@@ -171,7 +168,7 @@ export default class JobService extends BaseService {
 				};
 
 				return {
-					console: console,
+					console: jobLogger,
 					fetch: fetch,
 					require: (filePath: string): any => require(filePath),
 					biniou: biniou,
@@ -187,7 +184,7 @@ export default class JobService extends BaseService {
 
 				const startTime = Date.now();
 
-				const jobContext: JobContext = { params: options.params };
+				const jobContext: JobContext = { params: { ...job.params, ...options.params } };
 
 				try {
 					logger.info(`Starting job: ${job.id}`);

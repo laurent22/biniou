@@ -1,6 +1,6 @@
 exports = {
 	run: async function(context) {
-		const query = context.query;
+		const query = context.params.query;
 		if (!query) throw new Error('Missing "query" parameter');
 
 		const url = `https://hn.algolia.com/?dateRange=all&page=0&prefix=false&query=${escape(query)}&sort=byDate&type=all`;

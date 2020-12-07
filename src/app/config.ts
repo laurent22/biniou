@@ -19,8 +19,8 @@ class Config {
 
 	public async load(env: string, argv: any, options: LoadOptions = null) {
 		options = {
-			configDir: this.defaultConfigDir(),
-			dataDir: this.defaultDataDir(),
+			configDir: this.defaultConfigDir(env),
+			dataDir: this.defaultDataDir(env),
 			assetDir: path.resolve(path.dirname(path.dirname(__dirname)), 'assets'),
 			...options,
 		};
@@ -46,15 +46,15 @@ class Config {
 		return this.argv_[name];
 	}
 
-	private defaultConfigDir(): string {
+	private defaultConfigDir(env: string): string {
 		let dirname = 'biniou';
-		if (this.env !== 'prod') dirname += `-${this.env}`;
+		if (env !== 'prod') dirname += `-${env}`;
 		return `${require('os').homedir()}/.config/${dirname}`;
 	}
 
-	private defaultDataDir(): string {
+	private defaultDataDir(env: string): string {
 		let dirname = 'biniou';
-		if (this.env !== 'prod') dirname += `-${this.env}`;
+		if (env !== 'prod') dirname += `-${env}`;
 		const paths = envPaths(dirname, {suffix: ''});
 		return paths.data;
 	}
