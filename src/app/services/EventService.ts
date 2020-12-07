@@ -17,7 +17,7 @@ export default class EventService extends BaseService {
 		});
 	}
 
-	public async dispatchEvent(jobId: string, eventName: string, eventBody: any, options: any = {}): Promise<void> {
+	public async dispatchEvent(jobId: string, eventName: string, eventBody: any, options: any = {}): Promise<boolean> {
 		options = Object.assign({
 			allowDuplicates: true,
 		}, options);
@@ -30,7 +30,7 @@ export default class EventService extends BaseService {
 
 		if (!options.allowDuplicates) {
 			const existingEvent = await eventModel.loadByHash(hash);
-			if (existingEvent) return;
+			if (existingEvent) return false;
 		}
 
 		const now = Date.now();
@@ -46,6 +46,8 @@ export default class EventService extends BaseService {
 		};
 
 		await eventModel.save(event);
+
+		return true;
 	}
 
 	public async nextEvents(jobId: string, eventName: string): Promise<Event[]> {
