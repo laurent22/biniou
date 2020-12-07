@@ -1,0 +1,6 @@
+{
+	"type": "js",
+	"trigger": "event",
+	"triggerSpec": ["hn_post"],
+	"enabled": true
+}

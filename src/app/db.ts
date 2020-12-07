@@ -129,6 +129,8 @@ export interface Job {
 	scriptFile?: string;
 	script?: string;
 	enabled: boolean;
+	template?: string;
+	params?: any;
 }
 
 // AUTO-GENERATED-TYPES

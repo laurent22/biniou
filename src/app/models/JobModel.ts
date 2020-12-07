@@ -11,17 +11,13 @@ interface JobCache {
 
 export default class JobModel {
 
-	cache_:JobCache = {};
-	cacheAllDone_:boolean = false;
+	private cache_:JobCache = {};
+	private cacheAllDone_:boolean = false;
 
-	jobDir(id:string):string {
-		return `${config.jobsDir}/${id}`;
-	}
-
-	async load(id:string):Promise<Job> {
+	private async load(id:string):Promise<Job> {
 		if (this.cache_[id]) return this.cache_[id];
 
-		const path = this.jobDir(id);
+		const path = config.jobDir(id);
 		const o:any = await loadJsonFromFile(`${path}/job.json`);
 
 		const job:Job = {
@@ -36,6 +32,8 @@ export default class JobModel {
 		if (o.scriptFile) job.scriptFile = o.scriptFile;
 		if (o.script) job.script = o.script;
 		if (o.input) job.input = o.input;
+		if (o.template) job.template = o.template;
+		if (o.params) job.params = o.params;
 
 		if (job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
 		if (job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
@@ -50,7 +48,7 @@ export default class JobModel {
 		return output.filter(job => job.enabled);
 	}
 
-	async all():Promise<Job[]> {
+	public async all():Promise<Job[]> {
 		const output = [];
 		const dirs = await fs.readdir(config.jobsDir);
 		for (const dir of dirs) {
@@ -63,7 +61,7 @@ export default class JobModel {
 		return output;
 	}
 
-	async loadState_(jobId:string):Promise<JobState> {
+	private async loadState_(jobId:string):Promise<JobState> {
 		const jobStateModel = new JobStateModel();
 		const jobState = await jobStateModel.loadByJobId(jobId);
 		if (jobState) return jobState;
@@ -77,13 +75,13 @@ export default class JobModel {
 		return newJobState;
 	}
 
-	async saveState(stateId:string, state:JobState) {
-		state = Object.assign({}, state, { id: stateId });
-		const jobStateModel = new JobStateModel();
-		await jobStateModel.save(state);
-	}
+	// async saveState(stateId:string, state:JobState) {
+	// 	state = Object.assign({}, state, { id: stateId });
+	// 	const jobStateModel = new JobStateModel();
+	// 	await jobStateModel.save(state);
+	// }
 
-	previousIterationDate(job:Job):Date {
+	private previousIterationDate(job:Job):Date {
 		if (job.trigger === JobTrigger.Cron) {
 			const interval = cronParser.parseExpression(job.triggerSpec);
 			return interval.prev().toDate();
@@ -92,14 +90,14 @@ export default class JobModel {
 		throw new Error(`Unsupported job trigger: ${job.trigger}`);
 	}
 
-	nextIterationDate(job:Job):Date {
-		if (job.trigger === JobTrigger.Cron) {
-			const interval = cronParser.parseExpression(job.triggerSpec);
-			return interval.next().toDate();
-		}
+	// private nextIterationDate(job:Job):Date {
+	// 	if (job.trigger === JobTrigger.Cron) {
+	// 		const interval = cronParser.parseExpression(job.triggerSpec);
+	// 		return interval.next().toDate();
+	// 	}
 
-		throw new Error(`Unsupported job trigger: ${job.trigger}`);
-	}
+	// 	throw new Error(`Unsupported job trigger: ${job.trigger}`);
+	// }
 
 	// Finds jobs that have not been started when they should have (eg. because the service was not running).
 	async jobsThatNeedToRunNow(jobs:Job[]):Promise<Job[]> {

@@ -1,44 +1,50 @@
 import * as fs from 'fs-extra';
+import * as path from 'path';
 const envPaths = require('env-paths');
 
 interface LoadOptions {
 	configDir?: string;
 	dataDir?: string;
+	assetDir?: string;
 }
 
 class Config {
 
-	configDir_:string;
-	dataDir_:string;
-	env_:string;
-	argv_:any;
+	private configDir_:string;
+	private dataDir_:string;
+	private assetDir_:string;
+	private templateDir_:string;
+	private env_:string;
+	// private argv_:any;
 
-	async load(env:string, argv:any, options:LoadOptions = null) {
+	public async load(env:string, argv:any, options:LoadOptions = null) {
 		options = {
 			configDir: this.defaultConfigDir(),
 			dataDir: this.defaultDataDir(),
+			assetDir: path.resolve(path.dirname(path.dirname(__dirname)), 'assets'),
 			...options,
 		};
 
 		this.env_ = env;
-		this.argv_ = argv;
+		// this.argv_ = argv;
 		this.configDir_ = options.configDir;
 		this.dataDir_ = options.dataDir;
+		this.assetDir_ = options.assetDir;
 
 		await fs.mkdirp(this.configDir);
 		await fs.mkdirp(this.dataDir);
 		await fs.mkdirp(this.jobsDir);
 	}
 
-	get env():string {
+	public get env():string {
 		if (!this.env_) return 'dev'; // May happen for early error, when config hasn't been initialised yet
 		return this.env_;
 	}
 
-	argv(name:string = null):any {
-		if (name === null) return this.argv_;
-		return this.argv_[name];
-	}
+	// argv(name:string = null):any {
+	// 	if (name === null) return this.argv_;
+	// 	return this.argv_[name];
+	// }
 
 	private defaultConfigDir():string {
 		let dirname = 'biniou';
@@ -53,23 +59,31 @@ class Config {
 		return paths.data;
 	}
 
-	get configDir() {
+	public get configDir():string {
 		return this.configDir_;
 	}
 
-	get dataDir() {
+	public get dataDir():string {
 		return this.dataDir_;
 	}
 
-	get dbFilePath() {
+	public get assetDir():string {
+		return this.assetDir_;
+	}
+
+	public get templateDir():string {
+		return `${this.assetDir}/templates`;
+	}
+
+	public get dbFilePath() {
 		return `${this.dataDir}/database.sqlite`;
 	}
 
-	jobDir(jobId:string):string {
+	public jobDir(jobId:string):string {
 		return `${this.jobsDir}/${jobId}`;
 	}
 
-	get jobsDir() {
+	public get jobsDir() {
 		return `${this.configDir}/jobs`;
 	}
 
