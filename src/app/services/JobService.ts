@@ -10,7 +10,10 @@ import TaskQueue from '../utils/TaskQueue';
 import * as Twitter from 'twitter';
 import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
+import * as Mustache from 'mustache';
 
+const Entities = require('html-entities').AllHtmlEntities;
+const decodeHtmlEntities = new Entities().decode;
 const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
 
@@ -166,8 +169,12 @@ export default class JobService extends BaseService {
 					return page.$$eval(selector, callback);
 				};
 
-				biniou.require = (filePath: string): any => {
-					return require(filePath);
+				biniou.mustacheRender = (template: string, view: any) => {
+					return Mustache.render(template, view);
+				};
+
+				biniou.decodeHtmlEntities = (s: string) => {
+					return decodeHtmlEntities(s);
 				};
 
 				return {
@@ -271,8 +278,11 @@ export default class JobService extends BaseService {
 
 		if (job.trigger === JobTrigger.Event) {
 			for (const eventName of job.triggerSpec) {
-				const events = await this.eventService.nextEvents(job.id, eventName);
-				await this.execScript(job, { events, params });
+				for (let i = 0; i < 1000; i++) {
+					const events = await this.eventService.nextEvents(job.id, eventName);
+					if (!events.length) break;
+					await this.execScript(job, { events, params });
+				}
 			}
 		} else {
 			await this.execScript(job, { params });

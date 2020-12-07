@@ -7,6 +7,7 @@ module.exports = {
 	"parser": "@typescript-eslint/parser",
 	'extends': ['eslint:recommended'],
 	'globals': {
+		'fetch': 'readonly',
 		// When linting job scripts
 		'biniou': 'readonly',
 	},

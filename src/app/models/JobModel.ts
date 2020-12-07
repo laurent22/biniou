@@ -15,7 +15,7 @@ export default class JobModel {
 	private templateCache_: JobCache = {};
 	// private cacheAllDone_: boolean = false;
 
-	private async loadFromPath(path: string): Promise<Job> {
+	private async loadFromPath(path: string, isTemplate: boolean = false): Promise<Job> {
 		const o: any = await loadJsonFromFile(`${path}/job.json`);
 
 		const job: Job = {
@@ -32,8 +32,8 @@ export default class JobModel {
 		if (o.template) job.template = o.template;
 		if (o.params) job.params = o.params;
 
-		if (job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
-		if (job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
+		if (!isTemplate && job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
+		if (!isTemplate && job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
 
 		return job;
 	}
@@ -41,7 +41,7 @@ export default class JobModel {
 	private async loadTemplate(id: string): Promise<Job> {
 		if (this.templateCache_[id]) return this.templateCache_[id];
 		const templatePath = config.templateDir(id);
-		const templateJob = await this.loadFromPath(templatePath);
+		const templateJob = await this.loadFromPath(templatePath, true);
 		this.templateCache_[id] = templateJob;
 		return templateJob;
 	}

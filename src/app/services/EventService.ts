@@ -59,6 +59,7 @@ export default class EventService extends BaseService {
 			eventName,
 			lastJobResult ? lastJobResult.event_id : null,
 			lastJobResult ? lastJobResult.created_time : 0,
+			100,
 		);
 	}
 
