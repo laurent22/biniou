@@ -1,8 +1,8 @@
 exports = {
 	run: async function(context) {
-		if (params.simulateError) throw new Error('Simulating error');
-
 		const params = context.params;
+
+		if (params.simulateError) throw new Error('Simulating error');
 		const batchId = params.batchId;
 		const events = [];
 

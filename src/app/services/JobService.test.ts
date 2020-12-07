@@ -32,8 +32,6 @@ describe('JobService', function() {
 		expect(events.map(event => event.name)).toEqual(['my_event', 'my_event', 'my_event']);
 	});
 
-	// TODO: test error when processing event
-
 	test('should process events', async function() {
 		const eventModel = new EventModel();
 		const jobService = services.jobService;
@@ -91,6 +89,13 @@ describe('JobService', function() {
 		const createEventJob = await installJob('create_event');
 
 		await jobService.processJob(createEventJob, { simulateError: true });
+
+		const jobResultModel = new JobResultModel();
+		const jobResults = (await jobResultModel.allByJobId('create_event')) as JobResult[];
+
+		expect(jobResults.length).toBe(1);
+		expect(jobResults[0].success).toBe(0);
+		expect(jobResults[0].error.includes('Simulating error')).toBe(true);
 	});
 
 });
