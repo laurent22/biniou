@@ -35,7 +35,6 @@ export default class JobService extends BaseService {
 	private eventService_: EventService;
 	private eventCheckSchedule_: any = null;
 	private scheduledJobs_: ScheduledJobs = {};
-	// private jobs_: Job[] = null;
 	private jobModel_: JobModel;
 	private jobQueue_: TaskQueue;
 
@@ -45,11 +44,6 @@ export default class JobService extends BaseService {
 		this.eventService_ = eventService;
 		this.jobQueue_ = new TaskQueue();
 	}
-
-	// setLogger(v: Logger) {
-	// 	super.setLogger(v);
-	// 	//this.jobQueue_.setLogger(v);
-	// }
 
 	private get eventService(): EventService {
 		return this.eventService_;
@@ -75,7 +69,12 @@ export default class JobService extends BaseService {
 		try {
 			await runFn(context);
 		} catch (error) {
-			processingError = error;
+			// Error thrown from the Node VM are not of type "Error" so
+			// recreate one so that log entry is correctly displayed, with
+			// message and stack trace
+			const newError = new Error(error.message);
+			if (error.stack) newError.stack = error.stack;
+			processingError = newError;
 			success = false;
 		}
 
@@ -89,6 +88,10 @@ export default class JobService extends BaseService {
 
 		const processEventModel = new JobResultModel();
 		await processEventModel.save(jobResult);
+
+		if (!success) {
+			logger.error(`Job #${jobId}: Error running script:`, processingError);
+		}
 	}
 
 	private async execScript(job: Job, options: ExecScriptOptions = null): Promise<void> {
@@ -187,7 +190,7 @@ export default class JobService extends BaseService {
 				const jobContext: JobContext = { params: { ...job.params, ...options.params } };
 
 				try {
-					logger.info(`Starting job: ${job.id}`);
+					logger.info(`Job #${job.id}: Starting...`);
 
 					if (job.trigger === JobTrigger.Event) {
 						logger.info(`Number of events: ${options.events.length}`);
@@ -207,7 +210,7 @@ export default class JobService extends BaseService {
 						);
 					}
 
-					logger.info(`Events: Dispatched: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
+					logger.info(`Job #${job.id}: Dispatched events: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
 				} catch (error) {
 					// For some reason, error thrown from the executed script do not have the type "Error"
 					// but are instead plain object. So recreate the Error object here so that it can
@@ -219,7 +222,7 @@ export default class JobService extends BaseService {
 
 				await sandbox.biniou.browserClose();
 				await this.jobModel.saveState(job.state.id, { last_finished: Date.now() });
-				logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
+				logger.info(`Job #${job.id}: Finished (Took ${Date.now() - startTime}ms)`);
 			}
 		}
 	}

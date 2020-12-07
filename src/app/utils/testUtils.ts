@@ -4,6 +4,8 @@ import uuidgen from './uuidgen';
 import * as path from 'path';
 import config from '../config';
 import JobModel from '../models/JobModel';
+import Logger, { TargetType } from './Logger';
+import services from '../services';
 
 const suiteId_: string = uuidgen();
 
@@ -12,6 +14,9 @@ let dataDir_: string = null;
 
 const supportDir = path.resolve(rootDir, 'assets/tests/support');
 export const jobDir: string = path.resolve(supportDir, 'jobs');
+
+const wtf = new Logger();
+Logger.initializeGlobalLogger(services, wtf);
 
 async function dataDir(): Promise<string> {
 	if (dataDir_) return dataDir_;

@@ -33,7 +33,6 @@ describe('JobService', function() {
 	});
 
 	// TODO: test error when processing event
-	// TODO: test resuming processing events
 
 	test('should process events', async function() {
 		const eventModel = new EventModel();
@@ -84,6 +83,14 @@ describe('JobService', function() {
 		// so if the resuming mechanism doesn't work it would generate 9 events.
 		const events = await eventModel.allByJobId('process_event');
 		expect(events.length).toBe(6);
+	});
+
+	test('should handle event errors', async function() {
+		const jobService = services.jobService;
+
+		const createEventJob = await installJob('create_event');
+
+		await jobService.processJob(createEventJob, { simulateError: true });
 	});
 
 });

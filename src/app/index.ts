@@ -84,7 +84,7 @@ async function main() {
 	const globalLogger = new Logger();
 	if (config.env !== 'test') globalLogger.addTarget(TargetType.Console);
 	globalLogger.addTarget(TargetType.EventLog);
-	Logger.initializeGlobalLogger(globalLogger);
+	Logger.initializeGlobalLogger(services, globalLogger);
 
 	await setupDatabase({
 		connection: {

@@ -1,5 +1,3 @@
-import services from '../services';
-
 const moment = require('moment');
 
 export enum LogLevel {
@@ -42,9 +40,11 @@ export default class Logger {
 	private targets_: LoggerTarget[] = [];
 	private level_: LogLevel = LogLevel.Info;
 	private static globalLogger_: Logger = null;
+	private static services_: any = null;
 
-	public static initializeGlobalLogger(logger: Logger) {
+	public static initializeGlobalLogger(services: any, logger: Logger) {
 		this.globalLogger_ = logger;
+		this.services_ = services;
 	}
 
 	private static get globalLogger(): Logger {
@@ -89,8 +89,15 @@ export default class Logger {
 
 		if (typeof object === 'object') {
 			if (object instanceof Error) {
+				object = object as any;
 				output = object.toString();
+				if (object.code) output += `\nCode: ${object.code}`;
+				if (object.headers) output += `\nHeader: ${JSON.stringify(object.headers)}`;
+				if (object.request) output += `\nRequest: ${object.request.substr ? object.request.substr(0, 1024) : ''}`;
 				if (object.stack) output += `\n${object.stack}`;
+
+				// output = object.toString();
+				// if (object.stack) output += `\n${object.stack}`;
 			} else {
 				output = JSON.stringify(object);
 			}
@@ -141,7 +148,7 @@ export default class Logger {
 			} else if (target.type === TargetType.EventLog) {
 				// Note that log entries might not appear in the order they
 				// were dispatched since we don't await for the promise
-				void services.eventService.dispatchEvent(options.jobId, 'log', {
+				void Logger.services_.eventService.dispatchEvent(options.jobId, 'log', {
 					level: level,
 					message: line + this.objectsToString(...object),
 				});
