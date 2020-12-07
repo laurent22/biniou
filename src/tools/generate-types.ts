@@ -2,9 +2,9 @@ import sqlts from '@rmp135/sql-ts';
 import * as fs from 'fs-extra';
 import {setupDatabase, closeDatabase} from '../app/db';
 
-const dbTypeScriptFilePath:string = `${__dirname}/../../app/db.ts`;
+const dbTypeScriptFilePath: string = `${__dirname}/../../app/db.ts`;
 
-const nameCasing:'pascal' | 'camel' = 'pascal';
+const nameCasing: 'pascal' | 'camel' = 'pascal';
 
 const dbPath = 'db-buildTypes.sqlite';
 
@@ -29,12 +29,12 @@ const config = {
 	},
 };
 
-function insertContentIntoFile(filePath:string, markerOpen:string, markerClose:string, contentToInsert:string):void {
+function insertContentIntoFile(filePath: string, markerOpen: string, markerClose: string, contentToInsert: string): void {
 	const fs = require('fs');
 	if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
-	let content:string = fs.readFileSync(filePath, 'utf-8');
+	let content: string = fs.readFileSync(filePath, 'utf-8');
 	// [^]* matches any character including new lines
-	const regex:RegExp = new RegExp(`${markerOpen}[^]*?${markerClose}`);
+	const regex: RegExp = new RegExp(`${markerOpen}[^]*?${markerClose}`);
 	if (!content.match(regex)) throw new Error(`Could not find markers: ${markerOpen}`);
 	content = content.replace(regex, `${markerOpen}\n${contentToInsert}\n${markerClose}`);
 	fs.writeFileSync(filePath, content);
@@ -47,7 +47,7 @@ function insertContentIntoFile(filePath:string, markerOpen:string, markerClose:s
 // 	password?: string
 // 	is_admin?: number
 // }
-function createTypeString(table:any) {
+function createTypeString(table: any) {
 	const colStrings = [];
 	for (const col of table.columns) {
 		let name = col.propertyName;
@@ -85,7 +85,7 @@ function createTypeString(table:any) {
 // 		created_time: { type: "number" },
 // 	},
 // }
-function createRuntimeObject(table:any) {
+function createRuntimeObject(table: any) {
 	const colStrings = [];
 	for (const col of table.columns) {
 		let name = col.propertyName;

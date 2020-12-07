@@ -1,23 +1,23 @@
 export default abstract class BaseCommand {
 
-	commandName():string {
+	public commandName(): string {
 		const splitted = this.command().split(' ');
 		if (!splitted.length) throw new Error(`Invalid command: ${this.command()}`);
 		return splitted[0];
 	}
 
-	command():string {
+	public command(): string {
 		throw new Error('Not implemented');
 	}
 
-	description():string {
+	public description(): string {
 		throw new Error('Not implemented');
 	}
 
-	positionals():any[] {
+	public positionals(): any[] {
 		return [];
 	}
 
-	abstract run(argv:any):Promise<void>;
+	public abstract run(argv: any): Promise<void>;
 
 }

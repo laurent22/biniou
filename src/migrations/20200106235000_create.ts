@@ -1,7 +1,7 @@
 import * as Knex from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
-	await knex.schema.createTable('events', function(table:Knex.CreateTableBuilder) {
+	await knex.schema.createTable('events', function(table: Knex.CreateTableBuilder) {
 		table.string('id', 22).unique().primary().notNullable();
 		table.string('job_id', 128).notNullable();
 		table.string('hash', 32).notNullable();
@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.integer('updated_time').notNullable();
 	});
 
-	await knex.schema.createTable('job_states', function(table:Knex.CreateTableBuilder) {
+	await knex.schema.createTable('job_states', function(table: Knex.CreateTableBuilder) {
 		table.string('id', 22).unique().primary().notNullable();
 		table.string('job_id', 128).notNullable();
 		table.integer('last_started').defaultTo(0).notNullable();
@@ -21,7 +21,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.integer('updated_time').notNullable();
 	});
 
-	await knex.schema.createTable('job_results', function(table:Knex.CreateTableBuilder) {
+	await knex.schema.createTable('job_results', function(table: Knex.CreateTableBuilder) {
 		table.increments('id').unique().primary().notNullable();
 		table.string('job_id', 128).notNullable();
 		table.string('event_id', 22).notNullable();

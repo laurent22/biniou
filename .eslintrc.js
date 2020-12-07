@@ -66,4 +66,42 @@ module.exports = {
 		"@typescript-eslint",
 		"jest",
 	],
+	'overrides': [
+		{
+			// enable the rule specifically for TypeScript files
+			'files': ['*.ts', '*.tsx'],
+			'parserOptions': {
+				// Required for @typescript-eslint/no-floating-promises
+				'project': './tsconfig.json',
+			},
+			'rules': {
+				// Warn only because it would make it difficult to convert JS classes to TypeScript, unless we
+				// make everything public which is not great. New code however should specify member accessibility.
+				'@typescript-eslint/explicit-member-accessibility': ['warn'],
+				'@typescript-eslint/type-annotation-spacing': ['error', { 'before': false, 'after': true }],
+				'@typescript-eslint/comma-dangle': ['error', {
+					'arrays': 'always-multiline',
+					'objects': 'always-multiline',
+					'imports': 'always-multiline',
+					'exports': 'always-multiline',
+					'enums': 'always-multiline',
+					'generics': 'always-multiline',
+					'tuples': 'always-multiline',
+					'functions': 'always-multiline',
+				}],
+				'@typescript-eslint/semi': ['error', 'always'],
+				'@typescript-eslint/member-delimiter-style': ['error', {
+					'multiline': {
+						'delimiter': 'semi',
+						'requireLast': true,
+					},
+					'singleline': {
+						'delimiter': 'semi',
+						'requireLast': false,
+					},
+				}],
+				'@typescript-eslint/no-floating-promises': ['error'],
+			},
+		},
+	],
 };

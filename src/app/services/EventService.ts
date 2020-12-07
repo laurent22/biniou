@@ -6,9 +6,9 @@ import JobResultModel from '../models/JobResultModel';
 
 export default class EventService extends BaseService {
 
-	dispatchCount_:number = 0;
+	// private dispatchCount_: number = 0;
 
-	public async waitForDispatches():Promise<boolean> {
+	public async waitForDispatches(): Promise<boolean> {
 		return new Promise((resolve) => {
 			const iid = setInterval(() => {
 				clearInterval(iid);
@@ -17,51 +17,41 @@ export default class EventService extends BaseService {
 		});
 	}
 
-	public async dispatchEvent(jobId:string, eventName:string, eventBody:any, options:any = {}):Promise<boolean> {
-		this.dispatchCount_++;
-
+	public async dispatchEvent(jobId: string, eventName: string, eventBody: any, options: any = {}): Promise<void> {
 		options = Object.assign({
 			allowDuplicates: true,
 		}, options);
 
-		try {
-			const bodyType:EventBodyType = typeof eventBody === 'string' ? EventBodyType.String : EventBodyType.Object;
-			const eventBodySerialized:string = bodyType === EventBodyType.String ? eventBody : JSON.stringify(eventBody);
-			const hash = md5(escape(eventBodySerialized));
+		const bodyType: EventBodyType = typeof eventBody === 'string' ? EventBodyType.String : EventBodyType.Object;
+		const eventBodySerialized: string = bodyType === EventBodyType.String ? eventBody : JSON.stringify(eventBody);
+		const hash = md5(escape(eventBodySerialized));
 
-			const eventModel = new EventModel();
+		const eventModel = new EventModel();
 
-			if (!options.allowDuplicates) {
-				const existingEvent = await eventModel.loadByHash(hash);
-				if (existingEvent) return false;
-			}
-
-			const now = Date.now();
-
-			const event:Event = {
-				job_id: jobId,
-				name: eventName,
-				body_type: bodyType,
-				body: eventBodySerialized,
-				created_time: now,
-				updated_time: now,
-				hash: hash,
-			};
-
-			await eventModel.save(event);
-		} catch (error) {
-			this.dispatchCount_--;
-			throw error;
+		if (!options.allowDuplicates) {
+			const existingEvent = await eventModel.loadByHash(hash);
+			if (existingEvent) return false;
 		}
 
-		this.dispatchCount_--;
-		return true;
+		const now = Date.now();
+
+		const event: Event = {
+			job_id: jobId,
+			name: eventName,
+			body_type: bodyType,
+			body: eventBodySerialized,
+			created_time: now,
+			updated_time: now,
+			hash: hash,
+		};
+
+		await eventModel.save(event);
 	}
 
-	public async nextEvents(jobId:string, eventName:string):Promise<Event[]> {
+	public async nextEvents(jobId: string, eventName: string): Promise<Event[]> {
 		const jobResultModel = new JobResultModel();
 		const lastJobResult = await jobResultModel.lastByJobAndEvent(jobId, eventName);
-		const eventModel:EventModel = new EventModel();
+		const eventModel: EventModel = new EventModel();
 
 		return eventModel.eventsSince2(
 			eventName,

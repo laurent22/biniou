@@ -10,12 +10,12 @@ import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
 import { setupDatabase } from './db';
 
-async function exitProcess(code:number) {
+async function exitProcess(code: number) {
 	await services.eventService.waitForDispatches();
 	process.exit(code);
 }
 
-function setupCommands():any {
+function setupCommands(): any {
 	const commands = [
 		new RunCommand(),
 		new StartCommand(),
@@ -68,11 +68,11 @@ function setupCommands():any {
 }
 
 async function showHelp() {
-	return new Promise((resolve:Function) => {
+	return new Promise((resolve: Function) => {
 		// We have latest version of yargs but types have not been updated
 		// year, which means an error on the showHelp argument. To disable
 		// that error, cast yargs to any.
-		(yargs as any).showHelp((s:string) => resolve(s));
+		(yargs as any).showHelp((s: string) => resolve(s));
 	});
 }
 

@@ -5,15 +5,15 @@ import { sleep } from '../utils/timeUtils';
 
 export default class StartCommand extends BaseCommand {
 
-	command() {
+	public command() {
 		return 'start';
 	}
 
-	description() {
+	public description() {
 		return 'starts the server';
 	}
 
-	async run():Promise<void> {
+	public async run(): Promise<void> {
 		// const app = new Application();
 		// app.start();
 

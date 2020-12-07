@@ -2,13 +2,13 @@ import Logger from '../utils/Logger';
 
 export default class BaseService {
 
-	logger_:Logger = new Logger();
+	private logger_: Logger = new Logger();
 
-	get logger() {
+	protected get logger() {
 		return this.logger_;
 	}
 
-	setLogger(v:Logger) {
+	public setLogger(v: Logger) {
 		this.logger_ = v;
 	}
 

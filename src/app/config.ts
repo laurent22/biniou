@@ -10,14 +10,13 @@ interface LoadOptions {
 
 class Config {
 
-	private configDir_:string;
-	private dataDir_:string;
-	private assetDir_:string;
-	private templateDir_:string;
-	private env_:string;
-	// private argv_:any;
+	private configDir_: string;
+	private dataDir_: string;
+	private assetDir_: string;
+	private env_: string;
+	private argv_: any;
 
-	public async load(env:string, argv:any, options:LoadOptions = null) {
+	public async load(env: string, argv: any, options: LoadOptions = null) {
 		options = {
 			configDir: this.defaultConfigDir(),
 			dataDir: this.defaultDataDir(),
@@ -26,7 +25,7 @@ class Config {
 		};
 
 		this.env_ = env;
-		// this.argv_ = argv;
+		this.argv_ = argv;
 		this.configDir_ = options.configDir;
 		this.dataDir_ = options.dataDir;
 		this.assetDir_ = options.assetDir;
@@ -36,42 +35,42 @@ class Config {
 		await fs.mkdirp(this.jobsDir);
 	}
 
-	public get env():string {
+	public get env(): string {
 		if (!this.env_) return 'dev'; // May happen for early error, when config hasn't been initialised yet
 		return this.env_;
 	}
 
-	// argv(name:string = null):any {
-	// 	if (name === null) return this.argv_;
-	// 	return this.argv_[name];
-	// }
+	public argv(name: string = null): any {
+		if (name === null) return this.argv_;
+		return this.argv_[name];
+	}
 
-	private defaultConfigDir():string {
+	private defaultConfigDir(): string {
 		let dirname = 'biniou';
 		if (this.env !== 'prod') dirname += `-${this.env}`;
 		return `${require('os').homedir()}/.config/${dirname}`;
 	}
 
-	private defaultDataDir():string {
+	private defaultDataDir(): string {
 		let dirname = 'biniou';
 		if (this.env !== 'prod') dirname += `-${this.env}`;
 		const paths = envPaths(dirname, {suffix: ''});
 		return paths.data;
 	}
 
-	public get configDir():string {
+	public get configDir(): string {
 		return this.configDir_;
 	}
 
-	public get dataDir():string {
+	public get dataDir(): string {
 		return this.dataDir_;
 	}
 
-	public get assetDir():string {
+	public get assetDir(): string {
 		return this.assetDir_;
 	}
 
-	public get templateDir():string {
+	public get templateDir(): string {
 		return `${this.assetDir}/templates`;
 	}
 
@@ -79,7 +78,7 @@ class Config {
 		return `${this.dataDir}/database.sqlite`;
 	}
 
-	public jobDir(jobId:string):string {
+	public jobDir(jobId: string): string {
 		return `${this.jobsDir}/${jobId}`;
 	}
 

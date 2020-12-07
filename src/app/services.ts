@@ -4,11 +4,11 @@ import JobService from './services/JobService';
 
 class Services {
 
-	logger_:Logger;
-	jobService_:JobService;
-	eventService_:EventService;
+	private logger_: Logger;
+	private jobService_: JobService;
+	private eventService_: EventService;
 
-	private get logger():Logger {
+	private get logger(): Logger {
 		if (!this.logger_) {
 			this.logger_ = new Logger();
 			// this.logger_.addTarget(TargetType.Console);
@@ -17,7 +17,7 @@ class Services {
 		return this.logger_;
 	}
 
-	public get eventService():EventService {
+	public get eventService(): EventService {
 		if (!this.eventService_) {
 			this.eventService_ = new EventService();
 			this.eventService_.setLogger(this.logger);
@@ -26,7 +26,7 @@ class Services {
 		return this.eventService_;
 	}
 
-	public get jobService():JobService {
+	public get jobService(): JobService {
 		if (!this.jobService_) {
 			this.jobService_ = new JobService(this.eventService);
 			this.jobService_.setLogger(this.logger);

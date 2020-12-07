@@ -4,14 +4,14 @@ import uuidgen from './uuidgen';
 import * as path from 'path';
 import config from '../config';
 
-const suiteId_:string = uuidgen();
+const suiteId_: string = uuidgen();
 
 const rootDir = path.resolve(__dirname, '../../..');
-let dataDir_:string = null;
+let dataDir_: string = null;
 
-export const jobDir:string = path.resolve(rootDir, 'assets/tests/support/jobs');
+export const jobDir: string = path.resolve(rootDir, 'assets/tests/support/jobs');
 
-async function dataDir():Promise<string> {
+async function dataDir(): Promise<string> {
 	if (dataDir_) return dataDir_;
 	dataDir_ = path.resolve(rootDir, 'assets/tests/data/', suiteId_);
 	await fs.mkdirp(dataDir_);
@@ -54,13 +54,13 @@ export const initDatabase = async function() {
 	await setupDatabase(dbOptions);
 };
 
-export const clearDatabase = async function():Promise<void> {
+export const clearDatabase = async function(): Promise<void> {
 	await db()('events').truncate();
 	await db()('job_states').truncate();
 	await closeDatabase();
 };
 
-export async function checkThrowAsync(asyncFn:Function):Promise<any> {
+export async function checkThrowAsync(asyncFn: Function): Promise<any> {
 	try {
 		await asyncFn();
 	} catch (error) {

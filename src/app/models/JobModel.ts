@@ -6,21 +6,21 @@ import * as fs from 'fs-extra';
 const cronParser = require('cron-parser');
 
 interface JobCache {
-	[key:string]: Job
+	[key: string]: Job;
 }
 
 export default class JobModel {
 
-	private cache_:JobCache = {};
-	private cacheAllDone_:boolean = false;
+	private cache_: JobCache = {};
+	// private cacheAllDone_: boolean = false;
 
-	private async load(id:string):Promise<Job> {
+	public async load(id: string): Promise<Job> {
 		if (this.cache_[id]) return this.cache_[id];
 
 		const path = config.jobDir(id);
-		const o:any = await loadJsonFromFile(`${path}/job.json`);
+		const o: any = await loadJsonFromFile(`${path}/job.json`);
 
-		const job:Job = {
+		const job: Job = {
 			id: basename(path),
 			type: o.type,
 			state: await this.loadState_(id),
@@ -43,12 +43,12 @@ export default class JobModel {
 		return job;
 	}
 
-	public async allEnabled():Promise<Job[]> {
+	public async allEnabled(): Promise<Job[]> {
 		const output = await this.all();
 		return output.filter(job => job.enabled);
 	}
 
-	public async all():Promise<Job[]> {
+	public async all(): Promise<Job[]> {
 		const output = [];
 		const dirs = await fs.readdir(config.jobsDir);
 		for (const dir of dirs) {
@@ -57,11 +57,11 @@ export default class JobModel {
 			const job = await this.load(dir);
 			output.push(job);
 		}
-		this.cacheAllDone_ = true;
+		// this.cacheAllDone_ = true;
 		return output;
 	}
 
-	private async loadState_(jobId:string):Promise<JobState> {
+	private async loadState_(jobId: string): Promise<JobState> {
 		const jobStateModel = new JobStateModel();
 		const jobState = await jobStateModel.loadByJobId(jobId);
 		if (jobState) return jobState;
@@ -75,13 +75,13 @@ export default class JobModel {
 		return newJobState;
 	}
 
-	// async saveState(stateId:string, state:JobState) {
-	// 	state = Object.assign({}, state, { id: stateId });
-	// 	const jobStateModel = new JobStateModel();
-	// 	await jobStateModel.save(state);
-	// }
+	public async saveState(stateId: string, state: JobState) {
+		state = Object.assign({}, state, { id: stateId });
+		const jobStateModel = new JobStateModel();
+		await jobStateModel.save(state);
+	}
 
-	private previousIterationDate(job:Job):Date {
+	private previousIterationDate(job: Job): Date {
 		if (job.trigger === JobTrigger.Cron) {
 			const interval = cronParser.parseExpression(job.triggerSpec);
 			return interval.prev().toDate();
@@ -100,8 +100,8 @@ export default class JobModel {
 	// }
 
 	// Finds jobs that have not been started when they should have (eg. because the service was not running).
-	async jobsThatNeedToRunNow(jobs:Job[]):Promise<Job[]> {
-		const output:Job[] = [];
+	public async jobsThatNeedToRunNow(jobs: Job[]): Promise<Job[]> {
+		const output: Job[] = [];
 		for (const job of jobs) {
 			if (job.trigger !== JobTrigger.Cron) continue;
 			if (!job.enabled) continue;

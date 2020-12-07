@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { exec } from 'child_process';
 
-export async function loadJsonFromFile(path:string, mustExist:boolean = true):Promise<any> {
+export async function loadJsonFromFile(path: string, mustExist: boolean = true): Promise<any> {
 	if (!(await fs.pathExists(path))) {
 		if (mustExist) throw new Error(`File not found: ${path}`);
 		return null;
@@ -16,20 +16,20 @@ export async function loadJsonFromFile(path:string, mustExist:boolean = true):Pr
 	}
 }
 
-export function fileExtensions(path:string):string {
+export function fileExtensions(path: string): string {
 	if (!path) throw new Error('Path is empty');
 	const splitted = path.split('.');
 	if (splitted.length > 1) return splitted[splitted.length - 1];
 	return '';
 }
 
-export function basename(path:string):string {
+export function basename(path: string): string {
 	if (!path) throw new Error('Path is empty');
 	let s = path.split(/\/|\\/);
 	return s[s.length - 1];
 }
 
-export function filename(path:string, includeDir:boolean = false):string {
+export function filename(path: string, includeDir: boolean = false): string {
 	if (!path) throw new Error('Path is empty');
 	let output = includeDir ? path : basename(path);
 	if (output.indexOf('.') < 0) return output;
@@ -39,7 +39,7 @@ export function filename(path:string, includeDir:boolean = false):string {
 	return splitted.join('.');
 }
 
-export async function execCommand(command:string):Promise<string> {
+export async function execCommand(command: string): Promise<string> {
 	return new Promise((resolve, reject) => {
 		exec(command, (error, stdout) => {
 			if (error) {

@@ -3,19 +3,19 @@ import BaseModel from './BaseModel';
 
 export default class EventModel extends BaseModel {
 
-	get tableName():string {
+	protected get tableName(): string {
 		return 'events';
 	}
 
-	public async loadByHash(hash:string):Promise<Event> {
+	public async loadByHash(hash: string): Promise<Event> {
 		return this.db(this.tableName).select(this.defaultFields).where({ hash: hash }).first();
 	}
 
-	public async allByJobId(jobId:string):Promise<Event[]> {
+	public async allByJobId(jobId: string): Promise<Event[]> {
 		return this.db(this.tableName).select(this.defaultFields).where({ job_id: jobId });
 	}
 
-	public async eventsSince2(eventName:string, eventId:string, eventCreatedTime:number, limit:number = 10):Promise<Event[]> {
+	public async eventsSince2(eventName: string, eventId: string, eventCreatedTime: number, limit: number = 10): Promise<Event[]> {
 		if (!eventId) {
 			return this
 				.db(this.tableName)

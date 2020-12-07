@@ -19,10 +19,10 @@ const defaultConfig_ = {
 	// debug: env == 'dev' || env === 'testing',
 };
 
-let db_:Knex = null;
+let db_: Knex = null;
 // When app runs - check if profile dir exists and create if not
 
-async function migrate(db:Knex, options:any = null) {
+async function migrate(db: Knex, options: any = null) {
 	options = Object.assign({}, {
 		console: {
 			info: () => {},
@@ -44,7 +44,7 @@ async function migrate(db:Knex, options:any = null) {
 
 	const event = await db.migrate.latest(config);
 
-	const log:string[] = event[1];
+	const log: string[] = event[1];
 
 	if (!log.length) {
 		options.console.info('Database is already up to date');
@@ -53,14 +53,14 @@ async function migrate(db:Knex, options:any = null) {
 	}
 }
 
-export async function setupDatabase(config:any = null) {
+export async function setupDatabase(config: any = null) {
 	if (db_) throw new Error('Database has already been setup!');
 	config = Object.assign({}, defaultConfig_, config);
 	db_ = require('knex')(config);
 	await migrate(db_);
 }
 
-function database():Knex {
+function database(): Knex {
 	if (!db_) throw new Error('Database has not been setup!');
 	return db_;
 }
@@ -71,7 +71,7 @@ export async function closeDatabase() {
 	db_ = null;
 }
 
-export function databaseReady():boolean {
+export function databaseReady(): boolean {
 	return !!db_;
 }
 
@@ -82,24 +82,24 @@ export function defaultConfig() {
 }
 
 interface DatabaseTableColumn {
-	type: string
+	type: string;
 }
 
 interface DatabaseTable {
-	[key:string]: DatabaseTableColumn
+	[key: string]: DatabaseTableColumn;
 }
 
 interface DatabaseTables {
-	[key:string]: DatabaseTable
+	[key: string]: DatabaseTable;
 }
 
 export interface WithDates {
-	updated_time?: number
-	created_time?: number
+	updated_time?: number;
+	created_time?: number;
 }
 
 export interface WithUuid {
-	id?: string
+	id?: string;
 }
 
 export enum JobType {
@@ -112,7 +112,7 @@ export enum JobTrigger {
     Event = 'event',
 }
 
-export type JobTriggerSpec = string | string[]
+export type JobTriggerSpec = string | string[];
 
 export enum EventBodyType {
 	String = 1,
@@ -122,8 +122,8 @@ export enum EventBodyType {
 export interface Job {
 	id: string;
 	type: JobType;
-	trigger?: JobTrigger,
-	triggerSpec?: JobTriggerSpec,
+	trigger?: JobTrigger;
+	triggerSpec?: JobTriggerSpec;
 	state: JobState;
 	input?: string;
 	scriptFile?: string;
@@ -136,34 +136,34 @@ export interface Job {
 // AUTO-GENERATED-TYPES
 // Auto-generated using `npm run generate-types`
 export interface Event extends WithDates, WithUuid {
-	job_id?: string
-	hash?: string
-	name?: string
-	body_type?: EventBodyType
-	body?: string
+	job_id?: string;
+	hash?: string;
+	name?: string;
+	body_type?: EventBodyType;
+	body?: string;
 }
 
 export interface JobState {
-	id?: string
-	job_id?: string
-	last_started?: number
-	last_finished?: number
-	created_time?: number
-	updated_time?: number
+	id?: string;
+	job_id?: string;
+	last_started?: number;
+	last_finished?: number;
+	created_time?: number;
+	updated_time?: number;
 }
 
 export interface JobResult {
-	id?: number
-	job_id?: string
-	event_id?: string
-	event_created_time?: number
-	success?: number
-	error?: string
-	created_time?: number
-	updated_time?: number
+	id?: number;
+	job_id?: string;
+	event_id?: string;
+	event_created_time?: number;
+	success?: number;
+	error?: string;
+	created_time?: number;
+	updated_time?: number;
 }
 
-export const databaseSchema:DatabaseTables = {
+export const databaseSchema: DatabaseTables = {
 	events: {
 		id: { type: 'string' },
 		job_id: { type: 'string' },

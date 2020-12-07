@@ -4,15 +4,15 @@ import BaseCommand from './BaseCommand';
 
 export default class RunCommand extends BaseCommand {
 
-	command() {
+	public command() {
 		return 'run <job-id>';
 	}
 
-	description() {
+	public description() {
 		return 'runs the specified job once';
 	}
 
-	positionals() {
+	public positionals() {
 		return [
 			{
 				name: 'job-id',
@@ -20,7 +20,7 @@ export default class RunCommand extends BaseCommand {
 		];
 	}
 
-	async run(argv:any):Promise<void> {
+	public async run(argv: any): Promise<void> {
 		const jobId = argv.jobId;
 		const jobModel = new JobModel();
 		const job = await jobModel.load(jobId);
