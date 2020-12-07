@@ -13,10 +13,13 @@ import TaskQueue from '../utils/TaskQueue';
 // import {msleep, sleep} from '../utils/timeUtils';
 import * as Twitter from 'twitter';
 import JobResultModel from '../models/JobResultModel';
+import Logger from '../utils/Logger';
 // import EventModel from '../models/EventModel';
 
 const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
+
+const logger = Logger.create('JobService');
 
 interface ExecScriptOptions {
 	events? : Event[];
@@ -187,10 +190,10 @@ export default class JobService extends BaseService {
 				const jobContext: JobContext = { params: options.params };
 
 				try {
-					this.logger.info(`Starting job: ${job.id}`);
+					logger.info(`Starting job: ${job.id}`);
 
 					if (job.trigger === JobTrigger.Event) {
-						this.logger.info(`Number of events: ${options.events.length}`);
+						logger.info(`Number of events: ${options.events.length}`);
 
 						for (let event of options.events) {
 							await this.execJobRunFunction(
@@ -207,19 +210,19 @@ export default class JobService extends BaseService {
 						);
 					}
 
-					this.logger.info(`Events: Dispatched: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
+					logger.info(`Events: Dispatched: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
 				} catch (error) {
 					// For some reason, error thrown from the executed script do not have the type "Error"
 					// but are instead plain object. So recreate the Error object here so that it can
 					// be handled correctly by loggers, etc.
 					const newError: Error = new Error(error.message);
 					newError.stack = error.stack;
-					this.logger.jobError(job.id, `In script ${scriptPath}:`, newError);
+					logger.jobError(job.id, `In script ${scriptPath}:`, newError);
 				}
 
 				await sandbox.biniou.browserClose();
 				await this.jobModel.saveState(job.state.id, { last_finished: Date.now() });
-				this.logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
+				logger.info(`Finished job: ${job.id} (Took ${Date.now() - startTime}ms)`);
 			}
 		}
 	}
@@ -229,7 +232,7 @@ export default class JobService extends BaseService {
 
 		const jobTaskId = `${job.id}_${Date.now()}_${Math.random()}`;
 
-		this.logger.info(`Scheduling: ${job.id}`);
+		logger.info(`Scheduling: ${job.id}`);
 
 		if (job.trigger === JobTrigger.Cron) {
 			this.scheduledJobs_[job.id] = schedule.scheduleJob(job.triggerSpec, () => {
@@ -240,7 +243,7 @@ export default class JobService extends BaseService {
 		} else if (job.trigger === JobTrigger.Event) {
 			if (!this.eventCheckSchedule_) {
 				this.eventCheckSchedule_ = schedule.scheduleJob('*/5 * * * *', () => {
-					this.logger.info('Running event-based jobs...');
+					logger.info('Running event-based jobs...');
 					this.jobQueue_.push(jobTaskId, async () => {
 						await this.processEventJobs();
 					});
@@ -259,7 +262,7 @@ export default class JobService extends BaseService {
 		const jobs = await this.jobModel.all();
 		const enabledJobs = jobs.filter(j => j.enabled);
 		const disabledCount = jobs.length - enabledJobs.length;
-		this.logger.info(`JobService: Scheduling ${enabledJobs.length} job(s). ${disabledCount} job(s) disabled.`);
+		logger.info(`Scheduling ${enabledJobs.length} job(s). ${disabledCount} job(s) disabled.`);
 		await this.scheduleJobs(enabledJobs);
 	}
 
@@ -286,7 +289,7 @@ export default class JobService extends BaseService {
 	private async processJobsThatNeedToRunNow() {
 		const jobs = await this.jobModel.allEnabled();
 		const needToRunJobs = await this.jobModel.jobsThatNeedToRunNow(jobs);
-		this.logger.info(`JobService: Running ${needToRunJobs.length} job(s) now`);
+		logger.info(`Running ${needToRunJobs.length} job(s) now`);
 		await this.processJobs(needToRunJobs);
 	}
 
@@ -294,7 +297,7 @@ export default class JobService extends BaseService {
 		const jobModel = new JobModel();
 		const jobs = await jobModel.allEnabled();
 		const eventJobs = jobs.filter(job => job.trigger === JobTrigger.Event);
-		this.logger.info(`JobService: Processing ${eventJobs.length} event job(s)...`);
+		logger.info(`Processing ${eventJobs.length} event job(s)...`);
 		return this.processJobs(eventJobs);
 	}
 

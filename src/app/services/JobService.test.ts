@@ -1,7 +1,4 @@
-import { afterAllSetup, beforeEachSetup, installJob, jobDir } from '../utils/testUtils';
-import config from '../config';
-import JobModel from '../models/JobModel';
-import * as fs from 'fs-extra';
+import { afterAllSetup, beforeEachSetup, installJob } from '../utils/testUtils';
 import services from '../services';
 import EventModel from '../models/EventModel';
 import JobResultModel from '../models/JobResultModel';

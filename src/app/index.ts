@@ -9,6 +9,7 @@ import services from './services';
 import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
 import { setupDatabase } from './db';
+import Logger, { TargetType } from './utils/Logger';
 
 async function exitProcess(code: number) {
 	await services.eventService.waitForDispatches();
@@ -79,6 +80,11 @@ async function showHelp() {
 async function main() {
 	const { argv, selectedCommand } = setupCommands();
 	await config.load(argv.env, argv);
+
+	const globalLogger = new Logger();
+	if (config.env !== 'test') globalLogger.addTarget(TargetType.Console);
+	globalLogger.addTarget(TargetType.EventLog);
+	Logger.initializeGlobalLogger(globalLogger);
 
 	await setupDatabase({
 		connection: {

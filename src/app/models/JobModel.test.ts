@@ -1,9 +1,4 @@
 import { afterAllSetup, beforeEachSetup, installJob } from '../utils/testUtils';
-import EventModel from './EventModel';
-import { msleep } from '../utils/timeUtils';
-import { Event } from '../db';
-import { SaveOptions } from './BaseModel';
-import JobModel from './JobModel';
 
 describe('JobModel', function() {
 

@@ -17,6 +17,16 @@ export enum TargetType {
 	EventLog = 3,
 }
 
+export interface LoggerWrapper {
+	debug: Function;
+	info: Function;
+	warn: Function;
+	error: Function;
+	jobInfo: Function;
+	jobWarn: Function;
+	jobError: Function;
+}
+
 interface LoggerTarget {
 	type: TargetType;
 	level?: LogLevel;
@@ -31,6 +41,28 @@ export default class Logger {
 
 	private targets_: LoggerTarget[] = [];
 	private level_: LogLevel = LogLevel.Info;
+	private static globalLogger_: Logger = null;
+
+	public static initializeGlobalLogger(logger: Logger) {
+		this.globalLogger_ = logger;
+	}
+
+	private static get globalLogger(): Logger {
+		if (!this.globalLogger_) throw new Error('Global logger has not been initialized!!');
+		return this.globalLogger_;
+	}
+
+	public static create(prefix: string): LoggerWrapper {
+		return {
+			debug: (...object: any[]) => this.globalLogger.log(LogLevel.Debug, prefix, ...object),
+			info: (...object: any[]) => this.globalLogger.log(LogLevel.Info, prefix, ...object),
+			warn: (...object: any[]) => this.globalLogger.log(LogLevel.Warn, prefix, ...object),
+			error: (...object: any[]) => this.globalLogger.log(LogLevel.Error, prefix, ...object),
+			jobInfo: (jobId: string, ...object: any[]) => this.globalLogger.jobInfo(jobId, ...object),
+			jobWarn: (jobId: string, ...object: any[]) => this.globalLogger.jobWarn(jobId, ...object),
+			jobError: (jobId: string, ...object: any[]) => this.globalLogger.jobError(jobId, ...object),
+		};
+	}
 
 	public setLevel(level: LogLevel) {
 		this.level_ = level;
