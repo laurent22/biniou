@@ -1,5 +1,3 @@
-// require('source-map-support').install();
-
 import sqlts from '@rmp135/sql-ts';
 import * as fs from 'fs-extra';
 import {setupDatabase, closeDatabase} from '../app/db';

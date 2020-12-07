@@ -1,20 +1,19 @@
-// require('source-map-support').install();
-
 import * as fs from 'fs-extra';
-import db, { setupDatabase, closeDatabase, databaseReady } from '../app/db';
-import uuidgen from '../app/utils/uuidgen';
+import db, { setupDatabase, closeDatabase, databaseReady } from '../db';
+import uuidgen from './uuidgen';
 import * as path from 'path';
-import config from '../app/config';
+import config from '../config';
 
 const suiteId_:string = uuidgen();
 
+const rootDir = path.resolve(__dirname, '../../..');
 let dataDir_:string = null;
 
-export const jobDir:string = path.resolve(__dirname, '../../tests/support/jobs');
+export const jobDir:string = path.resolve(rootDir, 'assets/tests/support/jobs');
 
 async function dataDir():Promise<string> {
 	if (dataDir_) return dataDir_;
-	dataDir_ = path.resolve(__dirname, '../../tests/data/', suiteId_);
+	dataDir_ = path.resolve(rootDir, 'assets/tests/data/', suiteId_);
 	await fs.mkdirp(dataDir_);
 	return dataDir_;
 }

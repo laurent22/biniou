@@ -1,4 +1,4 @@
-import { afterAllSetup, beforeEachSetup, initDatabase } from '../../tests/testUtils';
+import { afterAllSetup, beforeEachSetup, initDatabase } from '../utils/testUtils';
 import EventModel from './EventModel';
 import { msleep } from '../utils/timeUtils';
 import { Event } from '../db';

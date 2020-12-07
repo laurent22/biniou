@@ -15,7 +15,7 @@ export default class EventModel extends BaseModel {
 		return this.db(this.tableName).select(this.defaultFields).where({ job_id: jobId });
 	}
 
-	public async eventsSince2(eventName:string, eventId:string, eventCreatedTime:number, limit:number = 10):Promise<Event[]> {		
+	public async eventsSince2(eventName:string, eventId:string, eventCreatedTime:number, limit:number = 10):Promise<Event[]> {
 		if (!eventId) {
 			return this
 				.db(this.tableName)

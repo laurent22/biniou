@@ -1,5 +1,3 @@
-// require('source-map-support').install();
-
 import JobModel from '../models/JobModel';
 import services from '../services';
 import BaseCommand from './BaseCommand';

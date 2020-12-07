@@ -1,5 +1,3 @@
-// require('source-map-support').install();
-
 import services from '../services';
 import BaseCommand from './BaseCommand';
 // import Application from '../services/server/Application';

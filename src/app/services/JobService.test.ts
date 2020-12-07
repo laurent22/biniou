@@ -1,4 +1,4 @@
-import { afterAllSetup, beforeEachSetup, jobDir } from '../../tests/testUtils';
+import { afterAllSetup, beforeEachSetup, jobDir } from '../utils/testUtils';
 import config from '../config';
 import JobModel from '../models/JobModel';
 import * as fs from 'fs-extra';
