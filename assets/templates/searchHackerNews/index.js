@@ -39,6 +39,6 @@ exports = {
 			return events;
 		});
 
-		await biniou.dispatchEvents('hn_post', events, { allowDuplicates: true });
+		await biniou.dispatchEvents('hackerNewsPost', events, { allowDuplicates: true });
 	},
 };

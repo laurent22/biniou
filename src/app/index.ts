@@ -8,6 +8,7 @@ import services from './services';
 
 import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
+import StatusCommand from './commands/StatusCommand';
 import { setupDatabase } from './db';
 import Logger, { TargetType } from './utils/Logger';
 
@@ -20,6 +21,7 @@ function setupCommands(): any {
 	const commands = [
 		new RunCommand(),
 		new StartCommand(),
+		new StatusCommand(),
 	];
 
 	for (let cmd of commands) {

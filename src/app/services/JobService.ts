@@ -11,6 +11,8 @@ import * as Twitter from 'twitter';
 import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
 import * as Mustache from 'mustache';
+import joplinApi from './joplin/api';
+import fsApi from './fs/api';
 
 const Entities = require('html-entities').AllHtmlEntities;
 const decodeHtmlEntities = new Entities().decode;
@@ -148,12 +150,14 @@ export default class JobService extends BaseService {
 						if (!rssParser_) rssParser_ = new RssParser();
 						return rssParser_;
 					},
-					twitterClient: (options: any) => {
+					twitter: (options: any) => {
 						const key = JSON.stringify(options);
 						if (twitterClients_[key]) return twitterClients_[key];
 						twitterClients_[key] = new Twitter(options);
 						return twitterClients_[key];
 					},
+					joplin: joplinApi,
+					fs: fsApi,
 				};
 
 				biniou.browserNewPage = async () => {
