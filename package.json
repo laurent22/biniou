@@ -16,7 +16,7 @@
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
     "db-migrate": "node dist/tools/db-migrate.js",
-    "postinstall": "npm run tsc",
+    "prepare": "npm run tsc",
     "dev-db-rebuild": "del db-development.sqlite && npm run db-migrate && npm run generate-types"
   },
   "publishConfig": {
