@@ -16,11 +16,16 @@ exports = {
 		const query = context.params.query;
 		if (!query) throw new Error('Missing "query" parameter');
 
+		// To get the bearer token:
+		//
+		// curl -X POST --data 'grant_type=client_credentials' -H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' -H 'Authorization: Basic BASE64_ENCODED_CONSUMER_KEY_AND_SECRET' https://api.twitter.com/oauth2/token
+		//
+		// BASE64_ENCODED_CONSUMER_KEY_AND_SECRET = base64(CONSUMER_KEY:CONSUMER_SECRET)
+		//
+		// https://developer.twitter.com/en/docs/authentication/oauth-2-0/application-only
+
 		const client = biniou.twitter({
-			consumer_key: '8ILo6PDrzbeAZhAYH19wR04gt',
-			consumer_secret: 'mJfkiVmHcIJpurmIbwZ3cARfR9Q8Sl1LjQZFosNirPkPYlAPyz',
-			access_token_key: '114555770-OiuuqdvJ0jBiCBmMqvfdYZBciHXpJTVMqpq91VKp',
-			access_token_secret: 'wIuwYXJiHWjMCwSB5dwfHwogrQyI0Y3cz3S3zHUPqotU2',
+			bearer_token: 'AAAAAAAAAAAAAAAAAAAAAGzNHQAAAAAAtfxFkmnBkRKbJ32%2BUIHp1iWKBYk%3D3BZi5QfCXQLzfwbnxLQdZfmWAwgwm2lumH7ZF2PifXeUqWnDvn',
 		});
 
 		const tweets = await getTweets(client, `search/tweets.json?q=${escape(query)}&src=typed_query&f=live&count=100`);

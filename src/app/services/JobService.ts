@@ -77,9 +77,18 @@ export default class JobService extends BaseService {
 			// Error thrown from the Node VM are not of type "Error" so
 			// recreate one so that log entry is correctly displayed, with
 			// message and stack trace
-			const newError = new Error(error.message);
-			if (error.stack) newError.stack = error.stack;
-			processingError = newError;
+
+			if (error.message) {
+				processingError = new Error(error.message);
+			} else {
+				// Some libs, like the Twitter one throw whatever as errors
+				// so in that case we just send back everything encoded as
+				// JSON.
+				processingError = new Error(JSON.stringify(error));
+			}
+
+			if (error.stack) processingError.stack = error.stack;
+
 			success = false;
 		}
 
