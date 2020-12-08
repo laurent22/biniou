@@ -31,6 +31,13 @@ export default function(apiToken: string, apiPort: number) {
 			// - user_created_time
 			// - user_updated_time
 			// - is_todo = 1 (so that the post can be ticked off once it's been read)
+			//
+			// If content is in HTML format:
+			//
+			// - body_html
+			// - base_url
+			//
+			// https://joplinapp.org/api/references/rest_api/#properties
 
 			const response = await fetch(`${baseUrl}/notes?token=${apiToken}`, {
 				method: 'POST',

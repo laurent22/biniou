@@ -192,6 +192,9 @@ export default class JobService extends BaseService {
 			vm.createContext(sandbox);
 
 			const result = vm.runInContext(scriptContent, sandbox);
+			if (!result) {
+				throw new Error(`Script "${scriptPath}" must export an object with a "run()" function`);
+			}
 
 			if (result.run) {
 				await this.jobModel.saveState(job.state.id, { last_started: Date.now() });
