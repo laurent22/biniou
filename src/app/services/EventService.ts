@@ -17,7 +17,7 @@ export default class EventService extends BaseService {
 		});
 	}
 
-	public async dispatchEvent(jobId: string, eventName: string, eventBody: any, options: any = {}): Promise<boolean> {
+	public async dispatchEvent(jobId: string, eventType: string, eventBody: any, options: any = {}): Promise<boolean> {
 		options = Object.assign({
 			allowDuplicates: true,
 		}, options);
@@ -37,7 +37,7 @@ export default class EventService extends BaseService {
 
 		const event: Event = {
 			job_id: jobId,
-			name: eventName,
+			type: eventType,
 			body_type: bodyType,
 			body: eventBodySerialized,
 			created_time: now,
@@ -50,13 +50,13 @@ export default class EventService extends BaseService {
 		return true;
 	}
 
-	public async nextEvents(jobId: string, eventName: string): Promise<Event[]> {
+	public async nextEvents(jobId: string, eventType: string): Promise<Event[]> {
 		const jobResultModel = new JobResultModel();
-		const lastJobResult = await jobResultModel.lastByJobAndEvent(jobId, eventName);
+		const lastJobResult = await jobResultModel.lastByJobAndEvent(jobId, eventType);
 		const eventModel: EventModel = new EventModel();
 
 		return eventModel.eventsSince2(
-			eventName,
+			eventType,
 			lastJobResult ? lastJobResult.event_id : null,
 			lastJobResult ? lastJobResult.created_time : 0,
 			100,

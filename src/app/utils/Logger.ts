@@ -1,3 +1,5 @@
+import * as fs from 'fs-extra';
+
 const moment = require('moment');
 
 export enum LogLevel {
@@ -29,6 +31,7 @@ interface LoggerTarget {
 	type: TargetType;
 	level?: LogLevel;
 	console?: any;
+	path?: string;
 }
 
 interface LogOptions {
@@ -76,11 +79,11 @@ export default class Logger {
 		this.targets_ = [];
 	}
 
-	public addTarget(type: TargetType) { // , options:any = null) {
-		let target = { type: type };
-		// for (let n in options) {
-		// 	target[n] = options[n];
-		// }
+	public addTarget(type: TargetType, options: any = null) {
+		const target = { type: type };
+		for (let n in options) {
+			(target as any)[n] = options[n];
+		}
 		this.targets_.push(target);
 	}
 
@@ -143,7 +146,8 @@ export default class Logger {
 				const consoleObj = target.console ? target.console : console;
 				consoleObj[fn](line + this.objectsToString(...object));
 			} else if (target.type === TargetType.File) {
-				// let serializedObject = this.objectsToString(...object);
+				let serializedObject = this.objectsToString(...object);
+				fs.appendFileSync(target.path, `${line + serializedObject}\n`);
 				// Logger.fsDriver().appendFileSync(target.path, `${line + serializedObject}\n`);
 			} else if (target.type === TargetType.EventLog) {
 				// Note that log entries might not appear in the order they

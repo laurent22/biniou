@@ -16,7 +16,7 @@ describe('EventModel', function() {
 
 	it('should return last events 2', async function() {
 		const eventModel = new EventModel();
-		const baseProps: Event = { name: 'test', job_id: 'test', hash: '123' };
+		const baseProps: Event = { type: 'test', job_id: 'test', hash: '123' };
 
 		await eventModel.save({ ...baseProps, body: 'one' }); await msleep(1);
 		await eventModel.save({ ...baseProps, body: 'two' }); await msleep(1);
@@ -38,7 +38,7 @@ describe('EventModel', function() {
 		// events 2 by 2, we need to check that we get all the events at the
 		// end.
 		const eventModel = new EventModel();
-		const baseProps: Event = { name: 'test', job_id: 'test', hash: '123', created_time: 1000, updated_time: 1000 };
+		const baseProps: Event = { type: 'test', job_id: 'test', hash: '123', created_time: 1000, updated_time: 1000 };
 		const saveOptions: SaveOptions = { autoTimestamp: false };
 
 		await eventModel.save({ ...baseProps, body: 'a' }, saveOptions);
@@ -64,7 +64,7 @@ describe('EventModel', function() {
 		// table).
 
 		const eventModel = new EventModel();
-		const baseProps: Event = { name: 'test', job_id: 'test', hash: '123' };
+		const baseProps: Event = { type: 'test', job_id: 'test', hash: '123' };
 
 		await eventModel.save({ ...baseProps, body: 'a' }); await msleep(1);
 		await eventModel.save({ ...baseProps, body: 'b' }); await msleep(1);

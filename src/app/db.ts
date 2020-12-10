@@ -119,6 +119,12 @@ export enum EventBodyType {
 	Object = 2,
 }
 
+export function eventBodyTypeToString(type: EventBodyType): string {
+	if (type === EventBodyType.String) return 'String';
+	if (type === EventBodyType.Object) return 'Object';
+	throw new Error(`Unknown body type: ${type}`);
+}
+
 export interface Job {
 	id: string;
 	type?: JobType;
@@ -138,7 +144,7 @@ export interface Job {
 export interface Event extends WithDates, WithUuid {
 	job_id?: string;
 	hash?: string;
-	name?: string;
+	type?: string;
 	body_type?: EventBodyType;
 	body?: string;
 }
@@ -168,7 +174,7 @@ export const databaseSchema: DatabaseTables = {
 		id: { type: 'string' },
 		job_id: { type: 'string' },
 		hash: { type: 'string' },
-		name: { type: 'string' },
+		type: { type: 'string' },
 		body_type: { type: 'number' },
 		body: { type: 'string' },
 		created_time: { type: 'number' },

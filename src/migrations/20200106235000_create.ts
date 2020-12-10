@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.string('id', 22).unique().primary().notNullable();
 		table.string('job_id', 128).notNullable();
 		table.string('hash', 32).notNullable();
-		table.string('name', 128).notNullable();
+		table.string('type', 128).notNullable();
 		table.integer('body_type').defaultTo(1).notNullable();
 		table.string('body').defaultTo('').notNullable();
 		table.integer('created_time').notNullable();

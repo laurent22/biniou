@@ -32,7 +32,7 @@ export default class JobModel {
 		if (o.template) job.template = o.template;
 		if (o.params) job.params = o.params;
 
-		if (!isTemplate && job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event names');
+		if (!isTemplate && job.trigger === JobTrigger.Event && !Array.isArray(job.triggerSpec)) throw new Error('Trigger spec must be an array of event types');
 		if (!isTemplate && job.trigger === JobTrigger.Cron && typeof job.triggerSpec !== 'string') throw new Error('Trigger spec must be a cron string');
 
 		return job;

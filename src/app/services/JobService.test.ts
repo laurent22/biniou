@@ -29,7 +29,7 @@ describe('JobService', function() {
 		titles.sort();
 		expect(titles).toEqual(['title 0', 'title 1', 'title 2']);
 
-		expect(events.map(event => event.name)).toEqual(['my_event', 'my_event', 'my_event']);
+		expect(events.map(event => event.type)).toEqual(['my_event', 'my_event', 'my_event']);
 	});
 
 	test('should process events', async function() {

@@ -124,15 +124,15 @@ export default class JobService extends BaseService {
 				const biniou: any = {
 					dispatchEventCount_: 0,
 					createdEventCount_: 0,
-					dispatchEvent: async (name: string, body: any, options: any) => {
+					dispatchEvent: async (type: string, body: any, options: any) => {
 						biniou.dispatchEventCount_++;
-						const created = await that.eventService.dispatchEvent(job.id, name, body, options);
+						const created = await that.eventService.dispatchEvent(job.id, type, body, options);
 						if (created) biniou.createdEventCount_++;
 					},
-					dispatchEvents: async (name: string, bodies: any[], options: any) => {
+					dispatchEvents: async (type: string, bodies: any[], options: any) => {
 						for (let body of bodies) {
 							biniou.dispatchEventCount_++;
-							const created = await that.eventService.dispatchEvent(job.id, name, body, options);
+							const created = await that.eventService.dispatchEvent(job.id, type, body, options);
 							if (created) biniou.createdEventCount_++;
 						}
 					},
@@ -284,9 +284,9 @@ export default class JobService extends BaseService {
 		params = params || {};
 
 		if (job.trigger === JobTrigger.Event) {
-			for (const eventName of job.triggerSpec) {
+			for (const eventType of job.triggerSpec) {
 				for (let i = 0; i < 1000; i++) {
-					const events = await this.eventService.nextEvents(job.id, eventName);
+					const events = await this.eventService.nextEvents(job.id, eventType);
 					if (!events.length) break;
 					await this.execScript(job, { events, params });
 				}

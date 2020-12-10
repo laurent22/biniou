@@ -18,6 +18,14 @@ export default abstract class BaseCommand {
 		return [];
 	}
 
+	public options(): any {
+		return {};
+	}
+
 	public abstract run(argv: any): Promise<void>;
+
+	protected stdout(s: string): void {
+		console.info(s);
+	}
 
 }

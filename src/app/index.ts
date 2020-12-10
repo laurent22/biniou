@@ -9,8 +9,11 @@ import services from './services';
 import RunCommand from './commands/RunCommand';
 import StartCommand from './commands/StartCommand';
 import StatusCommand from './commands/StatusCommand';
+import EventsCommand from './commands/EventsCommand';
+import JobsCommand from './commands/JobsCommand';
 import { setupDatabase } from './db';
 import Logger, { TargetType } from './utils/Logger';
+import JobLogCommand from './commands/JobLogCommand';
 
 async function exitProcess(code: number) {
 	await services.eventService.waitForDispatches();
@@ -22,15 +25,18 @@ function setupCommands(): any {
 		new RunCommand(),
 		new StartCommand(),
 		new StatusCommand(),
+		new EventsCommand(),
+		new JobsCommand(),
+		new JobLogCommand(),
 	];
 
 	for (let cmd of commands) {
 		yargs.command(cmd.command(), cmd.description(), (yargs) => {
-			const positionals = cmd.positionals ? cmd.positionals() : [];
-
-			for (const p of positionals) {
+			for (const p of cmd.positionals()) {
 				yargs.positional(p.name, p.options ? p.options : {});
 			}
+
+			yargs.options(cmd.options());
 		});
 	}
 
@@ -85,7 +91,9 @@ async function main() {
 
 	const globalLogger = new Logger();
 	if (config.env !== 'test') globalLogger.addTarget(TargetType.Console);
-	globalLogger.addTarget(TargetType.EventLog);
+	globalLogger.addTarget(TargetType.File, {
+		path: `${config.dataDir}/log.txt`,
+	});
 	Logger.initializeGlobalLogger(services, globalLogger);
 
 	await setupDatabase({
@@ -104,7 +112,7 @@ async function main() {
 }
 
 main().catch(error => {
-	if (config.argv('stackTrace')) {
+	if (config.argv('stack-trace')) {
 		console.error(error);
 	} else {
 		console.error(error.message);
