@@ -10,8 +10,6 @@
     "linter-ci": "./node_modules/.bin/eslint --ext .js --ext .jsx --ext .ts --ext .tsx",
     "start": "node dist/app/index.js",
     "tsc": "npx tsc --project tsconfig.json",
-    "tsc-watch-old": "npx tsc --watch --project tsconfig.json",
-    "watch-old": "npx gulp watch",
     "watch": "tsc --watch --project tsconfig.json",
     "run-job": "node dist/app/index.js",
     "generate-types": "node dist/tools/generate-types.js",
