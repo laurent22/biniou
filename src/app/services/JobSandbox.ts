@@ -7,8 +7,11 @@ import fsApi from './fs/api';
 import * as nodemailer from 'nodemailer';
 import SMTPTransport = require('nodemailer/lib/smtp-transport');
 
-// const Entities = require('html-entities').AllHtmlEntities;
-// const decodeHtmlEntities = new Entities().decode;
+const TurndownService = require('@joplin/turndown');
+const turndownPluginGfm = require('@joplin/turndown-plugin-gfm').gfm;
+const Entities = require('html-entities').AllHtmlEntities;
+const unescapeHtml = new Entities().decode;
+const escapeHtml = new Entities().encode;
 const RssParser = require('rss-parser');
 
 export default class JobSandbox {
@@ -102,8 +105,30 @@ export default class JobSandbox {
 	// 	return Mustache.render(template, view);
 	// }
 
-	// public decodeHtmlEntities(s: string) {
-	// 	return decodeHtmlEntities(s);
-	// }
+	public escapeHtml(s: string) {
+		return escapeHtml(s);
+	}
+
+	public unescapeHtml(s: string) {
+		return unescapeHtml(s);
+	}
+
+	public turndown(config: any = null) {
+		const turndown = new TurndownService({
+			headingStyle: 'atx',
+			codeBlockStyle: 'fenced',
+			bulletListMarker: '-',
+			emDelimiter: '*',
+			strongDelimiter: '**',
+			br: '',
+			...config,
+		});
+
+		turndown.use(turndownPluginGfm);
+		turndown.remove('script');
+		turndown.remove('style');
+
+		return turndown;
+	}
 
 }
