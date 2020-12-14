@@ -147,7 +147,7 @@ export default class JobService extends BaseService {
 					logger.info(`Job #${job.id}: Starting...`);
 
 					if (job.trigger === JobTrigger.Event) {
-						logger.info(`Number of events: ${options.events.length}`);
+						logger.info(`Job #${job.id}: Number of events: ${options.events.length}`);
 
 						for (let event of options.events) {
 							await this.execJobRunFunction(
@@ -225,6 +225,7 @@ export default class JobService extends BaseService {
 
 		if (job.trigger === JobTrigger.Event) {
 			for (const eventType of job.triggerSpec) {
+				logger.info(`Job #${job.id}: Processing events with type "${eventType}"...`);
 				for (let i = 0; i < 1000; i++) {
 					const events = await this.eventService.nextEvents(job.id, eventType);
 					if (!events.length) break;
