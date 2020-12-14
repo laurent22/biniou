@@ -1,22 +1,15 @@
 import * as fs from 'fs-extra';
 import * as vm from 'vm';
-import * as puppeteer from 'puppeteer';
 import { Job, Event, JobTrigger, JobResult } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
 import fetch from 'node-fetch';
 import TaskQueue from '../utils/TaskQueue';
-import * as Twitter from 'twitter';
 import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
-import * as Mustache from 'mustache';
-import joplinApi from './joplin/api';
-import fsApi from './fs/api';
+import JobSandbox from './JobSandbox';
 
-const Entities = require('html-entities').AllHtmlEntities;
-const decodeHtmlEntities = new Entities().decode;
-const RssParser = require('rss-parser');
 const schedule = require('node-schedule');
 
 const logger = Logger.create('JobService');
@@ -123,72 +116,10 @@ export default class JobService extends BaseService {
 
 			const scriptPath = await jobModel.scriptPath(job);
 			const scriptContent = (await fs.readFile(scriptPath)).toString();
+			const jobLogger = Logger.create(`Job #${job.id}`);
 
 			const sandbox = (function(that: JobService) {
-				let browser_: puppeteer.Browser = null;
-				let rssParser_: any = null;
-				let twitterClients_: any = {};
-				const jobLogger = Logger.create(`Job #${job.id}`);
-
-				const biniou: any = {
-					dispatchEventCount_: 0,
-					createdEventCount_: 0,
-					dispatchEvent: async (type: string, body: any, options: any) => {
-						biniou.dispatchEventCount_++;
-						const created = await that.eventService.dispatchEvent(job.id, type, body, options);
-						if (created) biniou.createdEventCount_++;
-					},
-					dispatchEvents: async (type: string, bodies: any[], options: any) => {
-						for (let body of bodies) {
-							biniou.dispatchEventCount_++;
-							const created = await that.eventService.dispatchEvent(job.id, type, body, options);
-							if (created) biniou.createdEventCount_++;
-						}
-					},
-					browser: async () => {
-						if (browser_) return browser_;
-						browser_ = await puppeteer.launch();
-						return browser_;
-					},
-					browserClose: async () => {
-						if (!browser_) return;
-						await browser_.close();
-						browser_ = null;
-					},
-					rssParser: () => {
-						if (!rssParser_) rssParser_ = new RssParser();
-						return rssParser_;
-					},
-					twitter: (options: any) => {
-						const key = JSON.stringify(options);
-						if (twitterClients_[key]) return twitterClients_[key];
-						twitterClients_[key] = new Twitter(options);
-						return twitterClients_[key];
-					},
-					joplin: joplinApi,
-					fs: fsApi,
-				};
-
-				biniou.browserNewPage = async () => {
-					const b = await biniou.browser();
-					const page = await b.newPage();
-					return page;
-				};
-
-				biniou.gotoPageAndWaitForSelector = async (url: string, selector: string, callback: Function) => {
-					const page = await biniou.browserNewPage();
-					await page.goto(url);
-					await page.waitForSelector(selector);
-					return page.$$eval(selector, callback);
-				};
-
-				biniou.mustacheRender = (template: string, view: any) => {
-					return Mustache.render(template, view);
-				};
-
-				biniou.decodeHtmlEntities = (s: string) => {
-					return decodeHtmlEntities(s);
-				};
+				const biniou: JobSandbox = new JobSandbox(job.id, that.eventService);
 
 				return {
 					console: jobLogger,
@@ -233,7 +164,7 @@ export default class JobService extends BaseService {
 						);
 					}
 
-					logger.info(`Job #${job.id}: Dispatched events: ${sandbox.biniou.dispatchEventCount_}; Created: ${sandbox.biniou.createdEventCount_}`);
+					logger.info(`Job #${job.id}: Dispatched events: ${sandbox.biniou.dispatchEventCount}; Created: ${sandbox.biniou.createdEventCount}`);
 				} catch (error) {
 					// For some reason, error thrown from the executed script do not have the type "Error"
 					// but are instead plain object. So recreate the Error object here so that it can
