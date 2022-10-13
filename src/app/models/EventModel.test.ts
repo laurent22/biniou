@@ -22,13 +22,13 @@ describe('EventModel', function() {
 		await eventModel.save({ ...baseProps, body: 'two' }); await msleep(1);
 		await eventModel.save({ ...baseProps, body: 'three' }); await msleep(1);
 
-		const events = await eventModel.eventsSince2('test', null, 0);
+		const events = await eventModel.eventsSince2('test', '', 0);
 		expect(events.length).toBe(3);
 		expect(events[0].body).toBe('one');
 		expect(events[1].body).toBe('two');
 		expect(events[2].body).toBe('three');
 
-		const events2 = await eventModel.eventsSince2('test', events[2].id, 0);
+		const events2 = await eventModel.eventsSince2('test', `${events[2].id}`, 0);
 		expect(events2.length).toBe(0);
 	});
 
@@ -49,7 +49,7 @@ describe('EventModel', function() {
 		const events1 = await eventModel.eventsSince2('test', '', 0, 2);
 		expect(events1.length).toBe(2);
 
-		const events2 = await eventModel.eventsSince2('test', events1[events1.length - 1].id, 0);
+		const events2 = await eventModel.eventsSince2('test', `${events1[events1.length - 1].id}`, 0);
 		expect(events2.length).toBe(2);
 
 		const allBodies = events1.concat(events2).map(event => event.body);
@@ -70,13 +70,13 @@ describe('EventModel', function() {
 		await eventModel.save({ ...baseProps, body: 'b' }); await msleep(1);
 		await eventModel.save({ ...baseProps, body: 'c' }); await msleep(1);
 
-		const events = await eventModel.eventsSince2('test', null, 2);
+		const events = await eventModel.eventsSince2('test', '', 2);
 		expect(events[0].body).toBe('a');
 		expect(events[1].body).toBe('b');
 
-		await eventModel.delete(events[1].id);
+		await eventModel.delete(`${events[1].id}`);
 
-		const events2 = await eventModel.eventsSince2('test', events[1].id, events[1].created_time);
+		const events2 = await eventModel.eventsSince2('test', `${events[1].id}`, events[1].created_time as number);
 		expect(events2.length).toBe(1);
 		expect(events2[0].body).toBe('c');
 	});

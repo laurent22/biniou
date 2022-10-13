@@ -19,7 +19,7 @@ const defaultConfig_ = {
 	// debug: env == 'dev' || env === 'testing',
 };
 
-let db_: Knex = null;
+let db_: any;
 // When app runs - check if profile dir exists and create if not
 
 async function migrate(db: Knex, options: any = null) {

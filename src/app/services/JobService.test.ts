@@ -25,7 +25,7 @@ describe('JobService', function() {
 
 		expect(events.length).toBe(3);
 
-		const titles = events.map(event => JSON.parse(event.body).title);
+		const titles = events.map(event => JSON.parse(`${event.body}`).title);
 		titles.sort();
 		expect(titles).toEqual(['title 0', 'title 1', 'title 2']);
 
@@ -47,7 +47,7 @@ describe('JobService', function() {
 		const events = await eventModel.allByJobId('process_event');
 
 		expect(events.length).toBe(3);
-		const titles = events.map(event => JSON.parse(event.body).title);
+		const titles = events.map(event => JSON.parse(`${event.body}`).title);
 		titles.sort();
 		expect(titles).toEqual(['Processed: title A 0', 'Processed: title A 1', 'Processed: title A 2']);
 
@@ -95,7 +95,7 @@ describe('JobService', function() {
 
 		expect(jobResults.length).toBe(1);
 		expect(jobResults[0].success).toBe(0);
-		expect(jobResults[0].error.includes('Simulating error')).toBe(true);
+		expect((jobResults[0].error as string).includes('Simulating error')).toBe(true);
 	});
 
 });
