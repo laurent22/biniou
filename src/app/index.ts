@@ -96,6 +96,8 @@ async function main() {
 	});
 	Logger.initializeGlobalLogger(services, globalLogger);
 
+	globalLogger.info(`Opening database: ${config.dbFilePath}`);
+
 	await setupDatabase({
 		connection: {
 			filename: config.dbFilePath,

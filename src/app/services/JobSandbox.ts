@@ -18,7 +18,7 @@ export default class JobSandbox {
 
 	private eventService_: EventService;
 	private browser_: puppeteer.Browser = null;
-	private rssParser_: any = null;
+	// private rssParser_: any = null;
 	private twitterClients_: any = {};
 	private dispatchEventCount_: number = 0;
 	private createdEventCount_: number = 0;
@@ -63,9 +63,15 @@ export default class JobSandbox {
 		this.browser_ = null;
 	}
 
-	public rssParser() {
-		if (!this.rssParser_) this.rssParser_ = new RssParser();
-		return this.rssParser_;
+	public rssParser(options: any) {
+		return new RssParser(options);
+		// 	const key = JSON.stringify(options);
+		// 	if (this.twitterClients_[key]) return this.twitterClients_[key];
+		// 	this.twitterClients_[key] = new Twitter(options);
+		// 	return this.twitterClients_[key];
+
+	// 	if (!this.rssParser_) this.rssParser_ = new RssParser();
+	// 	return this.rssParser_;
 	}
 
 	public twitter(options: any) {
@@ -92,6 +98,9 @@ export default class JobSandbox {
 	public async gotoPageAndWaitForSelector(url: string, selector: string, callback: any) {
 		const page = await this.browserNewPage();
 		await page.goto(url);
+		page.on('console', message => {
+			console.info(`Puppeteer: ${message.type().substr(0, 3).toUpperCase()}: ${message.text()}`);
+		});
 		await page.waitForSelector(selector);
 		return page.$$eval(selector, callback);
 	}

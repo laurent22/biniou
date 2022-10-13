@@ -30,7 +30,7 @@ exports = {
 					event.title = `${storyTitle.innerText} (Post)`;
 					event.author = element.querySelectorAll('.Story_meta span')[2].innerText;
 					event.url = titleAnchor.getAttribute('href');
-					event.body = element.querySelectorAll('.Story_meta .Story_comment')[0].innerText;
+					event.body = element.querySelectorAll('.Story_meta .Story_comment')[0]?.innerText || '';
 					event.contentType = 'post';
 				}
 
