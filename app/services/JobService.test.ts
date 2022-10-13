@@ -2,7 +2,6 @@ import { afterAllSetup, beforeEachSetup, jobDir } from '../../tests/testUtils';
 import config from '../config';
 import JobModel from '../models/JobModel';
 import * as fs from 'fs-extra';
-import JobService from './JobService';
 import services from '../services';
 import EventModel from '../models/EventModel';
 import JobResultModel from '../models/JobResultModel';
