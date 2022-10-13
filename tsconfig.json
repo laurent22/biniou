@@ -1,5 +1,5 @@
 {
-    "compilerOptions": {
+	"compilerOptions": {
 		"module": "commonjs",
 		"target": "es2018",
 		"alwaysStrict": true,
@@ -14,13 +14,14 @@
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"allowUmdGlobalAccess": true,
-		"outDir": "dist",
-		"rootDir": ".",
+		"outDir": "dist"
 	},
-    "include": [
-        "app/**/*",
-        "tools/**/*",
-        "migrations/**/*",
-        "tests/**/*",
+	"rootDir": ".",
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+	],
+	"exclude": [
+		"**/node_modules",
 	],
 }
