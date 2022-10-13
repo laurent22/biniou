@@ -14,7 +14,8 @@
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"allowUmdGlobalAccess": true,
-		"outDir": "dist"
+		"outDir": "dist",
+		"strictNullChecks": false
 	},
 	"rootDir": ".",
 	"include": [
