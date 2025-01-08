@@ -8,7 +8,7 @@ The jobs can be defined based on the included templates or, for maximum flexibil
 
 ## Usage
 
-- Install `biniou` globally, for example using `npm install -g biniou`
+- Install `biniou` globally, for example using `npm install -g @laurent22/biniou`
 - You then need to let it run in the background, using `biniou start`
 
 ## Development

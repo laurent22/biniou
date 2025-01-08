@@ -115,10 +115,13 @@ export default class JobService extends BaseService {
 			let success = false;
 			let processingError: any = null;
 			try {
+				logger.info(`Job #${job.id}: Starting...`);
 				result = await execCommand(job.script, { quiet: true });
 				success = true;
+				logger.info(`Job #${job.id}: Success`);
 			} catch (error) {
 				processingError = error;
+				logger.jobError(job.id, `In script ${job.script}:`, error);
 			}
 
 			if (!processingError) {
