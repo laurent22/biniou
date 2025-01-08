@@ -11,6 +11,138 @@ The jobs can be defined based on the included templates or, for maximum flexibil
 - Install `biniou` globally, for example using `npm install -g @laurent22/biniou`
 - You then need to let it run in the background, using `biniou start`
 
+## Creating a job
+
+- To create a job, create a folder in `~/.config/biniou/jobs` - **the folder name will be the job ID**.
+- Then add a `job.json` file in that folder - this will be used to describe the job
+
+### Running a job on a schedule
+
+A simple `job.json` file can be something like this:
+
+```json
+{
+	"type": "shell",
+	"script": "/path/to/you/command.sh",
+	"trigger": "cron",
+	"triggerSpec": "0 * * * *"
+}
+```
+
+This is essentially a simple cron command. In some context, it is easier than using the system crontab (especially on macOS) since the above command will run in the same environment as your user, which means paths, env variables, etc. will be defined.
+
+### Dispatching events
+
+A job can be setup to dispatch events. Events can be used by other jobs for further processing, thus creating a pipe.
+
+To dispatch events, you need to create your script in JavaScript. For example, the following job will parse an RSS feed, and create an event for each RSS item:
+
+**job.json**:
+
+```json
+{
+	"type": "js",
+	"trigger": "cron",
+	"triggerSpec": "0,30 * * * *"
+}
+```
+
+**index.js**:
+
+```javascript
+exports = {
+	run: async () => {
+		const feed = await biniou.rssParser({
+			customFields: {
+				item: ['twitter-text'],
+			}
+		}).parseURL('https://joplinapp.org/rss');
+
+		const events = feed.items.map(item => {
+			return {
+				id: item.guid,
+				title: item.title,
+				content: item.content,
+				link: item.link,
+				twitterText: item['twitter-text'],
+				date: item.isoDate,
+			};
+		});
+
+		await biniou.dispatchEvents('joplin_post', events, { allowDuplicates: false });
+	},
+};
+```
+
+Note in particular the `biniou.*` function - several of these are available for various tasks to make it easier to define jobs.
+
+### Processing events
+
+Once a job has dispatched events, you will probably want to process these events in some way. For this you can create an event processing job.
+
+Likewise you would create a `job.json` file but this type the `trigger` will be `event`. You also set the `triggerSpec` to the event types that your job can process. There can be any number of event types in that array.
+
+**job.json**:
+
+```json
+{
+	"type": "js",
+	"trigger": "event",
+	"triggerSpec": ["joplin_post"]
+}
+```
+
+You then create an `index.js` that's going to process the event. This file should contain a `run` function which you use to receive and process the event. In the example below an email is going to be sent for each event:
+
+**index.js**:
+
+```javascript
+exports = {
+	run: async function(context) {
+		const mailerConfig = {
+			host: "smtp.example.com",
+			port: 465,
+			secure: true,
+			auth: {
+				user: 'name@example.com',
+				pass: 'Moscow4',
+			},
+			tls: {
+				rejectUnauthorized: false
+			}
+		};
+
+		const content = JSON.parse(context.event.body); 
+
+		await biniou.mailer(mailerConfig).sendMail({
+			from: '"Biniou" <name@example.com>',
+			to: 'recipient@example.com',
+			subject: '[Biniou] ' + content.title,
+			text: context.event.body,
+		});
+	},
+};
+```
+
+### Job structure
+
+The `job.json` file defines the basic job metadata:
+
+| Property         | Type              | Possible Values    | Description |
+|------------------|-------------------|--------------------|-------------|
+| `id`             | string            |                    | Unique identifier for the job. This is the name of the folder that contains job.json |
+| `type`           | `JobType`         | `'js'`, `'shell'`  | Type of the job. |
+| `trigger`        | `JobTrigger`      | `'cron'`, `'event'`| Defines when the job should be triggered. Can be based on a Cron schedule or an event. |
+| `triggerSpec`    | `JobTriggerSpec`  | string or string[]  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). |
+| `script`         | string            |                    | The script to be executed. Defaults to `index.js` for `js` jobs. Otherwise you need to provide the path to the shell command. |
+| `enabled`        | boolean           | `true` or `false`  | Indicates whether the job is enabled and should run. Defaults to `true` |
+| `template`       | string            |                    | Optional template name, if the job is based on a template. |
+| `params`         | any               |                    | Additional parameters that can be used for the job execution. |
+
+### The biniou API
+
+Within a JavaScript job, you can access the `biniou` global object that provide various utilities function. The full list of functions is described in [JobSandbox.ts](./src/app/services/JobSandbox.ts)
+
 ## Development
 
 Run `yarn watch` to automatically build the application.
