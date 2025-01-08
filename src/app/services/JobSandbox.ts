@@ -1,7 +1,6 @@
 import EventService from './EventService';
 import * as puppeteer from 'puppeteer';
 import * as Twitter from 'twitter';
-// import * as Mustache from 'mustache';
 import joplinApi from './joplin/api';
 import fsApi from './fs/api';
 import * as nodemailer from 'nodemailer';
@@ -18,7 +17,6 @@ export default class JobSandbox {
 
 	private eventService_: EventService;
 	private browser_: puppeteer.Browser = null;
-	// private rssParser_: any = null;
 	private twitterClients_: any = {};
 	private dispatchEventCount_: number = 0;
 	private createdEventCount_: number = 0;
@@ -65,13 +63,6 @@ export default class JobSandbox {
 
 	public rssParser(options: any) {
 		return new RssParser(options);
-		// 	const key = JSON.stringify(options);
-		// 	if (this.twitterClients_[key]) return this.twitterClients_[key];
-		// 	this.twitterClients_[key] = new Twitter(options);
-		// 	return this.twitterClients_[key];
-
-	// 	if (!this.rssParser_) this.rssParser_ = new RssParser();
-	// 	return this.rssParser_;
 	}
 
 	public twitter(options: any) {
@@ -109,10 +100,6 @@ export default class JobSandbox {
 	public mailer(config: SMTPTransport) {
 		return nodemailer.createTransport(config);
 	}
-
-	// public mustacheRender(template: string, view: any) {
-	// 	return Mustache.render(template, view);
-	// }
 
 	public escapeHtml(s: string) {
 		return escapeHtml(s);

@@ -9,6 +9,8 @@ import TaskQueue from '../utils/TaskQueue';
 import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
 import JobSandbox from './JobSandbox';
+import { execCommand } from '@joplin/utils';
+
 
 const schedule = require('node-schedule');
 
@@ -109,8 +111,30 @@ export default class JobService extends BaseService {
 		};
 
 		if (job.type === 'shell') {
-			// const result = await execCommand(job.script);
-			// await fs.writeFile(eventFilePath, JSON.stringify({ created_time: Date.now(), body: result }));
+			let result: string = '';
+			let success = false;
+			let processingError: any = null;
+			try {
+				result = await execCommand(job.script, { quiet: true });
+				success = true;
+			} catch (error) {
+				processingError = error;
+			}
+
+			if (!processingError) {
+				await this.eventService.dispatchEvent(job.id, job.type, result, { allowDuplicates: true });
+			}
+
+			const jobResult: JobResult = {
+				job_id: job.id,
+				event_id: '',
+				event_created_time: 0,
+				success: success ? 1 : 0,
+				error: processingError ? this.serializeError(processingError) : '',
+			};
+
+			const processEventModel = new JobResultModel();
+			await processEventModel.save(jobResult);
 		} else if (job.type === 'js') {
 			const jobModel = new JobModel();
 
