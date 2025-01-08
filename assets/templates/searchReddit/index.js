@@ -54,17 +54,6 @@ exports = {
 		const loopCount = Math.round(maxItems / itemLimit);
 		let afterId = null;
 
-		// {
-		// 	"title": "Searching an Markdown Editor for Windows which can be connected to webdav/nextcloud",
-		// 	"link": "https://www.reddit.com/r/opensource/comments/k4q2l4/searching_an_markdown_editor_for_windows_which/",
-		// 	"pubDate": "2020-12-01T17:55:11.000Z",
-		// 	"author": "/u/XextraneusX",
-		// 	"content": "<!-- SC_OFF --><div class=\"md\"><p>Hi, </p> <p>i am searching an editor which can be connected to a nextcloud via nextdav. I tested joplin bun unfortunately it saves only new notebooks on the nextcloud and dont sinc already existing notebooks. Neither .md nor .txt </p> <p>I even checked it there are some plugins for notepad++ or even visual studio code. But seems all plugins are very old and discontinued.</p> </div><!-- SC_ON --> &#32; submitted by &#32; <a href=\"https://www.reddit.com/user/XextraneusX\"> /u/XextraneusX </a> &#32; to &#32; <a href=\"https://www.reddit.com/r/opensource/\"> r/opensource </a> <br/> <span><a href=\"https://www.reddit.com/r/opensource/comments/k4q2l4/searching_an_markdown_editor_for_windows_which/\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/opensource/comments/k4q2l4/searching_an_markdown_editor_for_windows_which/\">[comments]</a></span>",
-		// 	"contentSnippet": "Hi, \n i am searching an editor which can be connected to a nextcloud via nextdav. I tested joplin bun unfortunately it saves only new notebooks on the nextcloud and dont sinc already existing notebooks. Neither .md nor .txt \n I even checked it there are some plugins for notepad++ or even visual studio code. But seems all plugins are very old and discontinued.\n    submitted by    /u/XextraneusX    to    r/opensource  \n [link]   [comments]",
-		// 	"id": "t3_k4q2l4",
-		// 	"isoDate": "2020-12-01T17:55:11.000Z"
-		// }
-
 		for (let i = 0; i < loopCount; i++) {
 			const result = await parseRssFeed(query, itemLimit, afterId, includedWords, excludedWords);
 			afterId = result.lastId;
