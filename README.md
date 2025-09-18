@@ -39,12 +39,15 @@ This is essentially a simple cron command. In some context, it is easier than us
 {
 	"type": "js",
 	"trigger": "fileSystem",
-	"triggerSpec": "/path/to/be/watched",
-	"depth": 0
+	"triggerSpec": {
+		"paths": ["/path/to/watch"],
+		"depth": 0,
+		"fileExtensions": ["txt"]
+	}
 }
 ```
 
-The above job will watch `/path/to/be/watched` for any change. It will not do so recursively since `depth` is set to `0`.
+The above job will watch `/path/to/watch` for any change. It will not do so recursively since `depth` is set to `0`, and only the text file (.txt) will be watched.
 
 Then the `index.js` file can be used to do something when a file is changed:
 
@@ -57,6 +60,8 @@ exports = {
 
 		if (event === 'add') {
 			console.info('A file has been added: ' + path);
+			// In this example, each file that is changed is copied to a backup folder
+			await biniou.execCommand(['cp', path, '/backup/']);
 		}
 	},
 };
@@ -166,12 +171,20 @@ The `job.json` file defines the basic job metadata:
 | `id`             | string            |                    | Unique identifier for the job. This is the name of the folder that contains job.json |
 | `type`           | `JobType`         | `'js'`, `'shell'`, `'fileSystem'`  | Type of the job. |
 | `trigger`        | `JobTrigger`      | `'cron'`, `'event'`| Defines when the job should be triggered. Can be based on a Cron schedule or an event. |
-| `triggerSpec`    | `JobTriggerSpec`  | string or string[]  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). If the job type is `fileSystem`, it should be the path or paths to be watched.  |
+| `triggerSpec`    | `JobTriggerSpec`  | string, string[] or FileSystemTriggerSpec  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). If the job type is `fileSystem`, it should be a `FileSystemTriggerSpec` (see below).  |
 | `script`         | string            |                    | The script to be executed. Defaults to `index.js` for `js` jobs. Otherwise you need to provide the path to the shell command. |
 | `enabled`        | boolean           | `true` or `false`  | Indicates whether the job is enabled and should run. Defaults to `true` |
 | `template`       | string            |                    | Optional template name, if the job is based on a template. |
 | `depth`          | number            |                    | If the job type is `fileSystem` this can be used to specify how deep the folders should be watched. `undefined` means all folders recursively. `0` means only the current folder, `1` is one level deep, etc. |
 | `params`         | any               |                    | Additional parameters that can be used for the job execution. |
+
+#### FileSystemTriggerSpec
+
+| Property         | Type              | Possible Values    | Description |
+|------------------|-------------------|--------------------|-------------|
+| `paths`             | string[]          |                    | List of paths that must be watched - can be either files or directories |
+| `depth`          | number            |                    | Optional. This can be used to specify how deep the folders should be watched. `undefined` means all folders recursively. `0` means only the current folder, `1` is one level deep, etc. |
+| `fileExtensions`          | string[]            |                    |  Optional. File extensions that must be watched. Leave it empty to watch all files.  |
 
 ### The biniou API
 

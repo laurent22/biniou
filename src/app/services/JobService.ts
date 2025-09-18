@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as vm from 'vm';
-import { Job, Event, JobTrigger, JobResult, JobType } from '../db';
+import { Job, Event, JobTrigger, JobResult, JobType, FileSystemTriggerSpec } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
@@ -11,6 +11,7 @@ import Logger from '../utils/Logger';
 import JobSandbox from './JobSandbox';
 import { execCommand } from '@joplin/utils';
 import chokidar, { ChokidarOptions } from 'chokidar';
+import { extname } from 'path';
 
 const schedule = require('node-schedule');
 
@@ -231,20 +232,26 @@ export default class JobService extends BaseService {
 		} else if (job.trigger === JobTrigger.FileSystem) {
 			if (!job.triggerSpec) throw new Error('Path must be specified in "triggerSpec" property');
 			if (job.type !== JobType.JavaScript) throw new Error('Only job type "js" is supported for filesystem');
-			const paths = typeof job.triggerSpec === 'string' ? [job.triggerSpec] : job.triggerSpec;
+			const spec = job.triggerSpec as FileSystemTriggerSpec;
 
-			for (const path of paths) {
+			for (const path of spec.paths) {
 				if (!(await fs.pathExists(path))) throw new Error(`Path does not exist: ${path}`);
 			}
 
 			const chokidarOptions: ChokidarOptions = {};
 
-			if (job.depth !== undefined) chokidarOptions.depth = job.depth;
+			if (spec.depth !== undefined) chokidarOptions.depth = spec.depth;
 
-			logger.info('Watching path(s):', paths);
-			logger.info('With options:', chokidarOptions);
+			logger.info('Trigger spec:', spec);
+			logger.info('Watching with options:', chokidarOptions);
 
-			chokidar.watch(paths, chokidarOptions).on('all', (event, path) => {
+			const fileExtensions = spec.fileExtensions ? spec.fileExtensions.map(e => e.toLowerCase()) : [];
+
+			chokidar.watch(spec.paths, chokidarOptions).on('all', (event, path) => {
+				if (fileExtensions.length) {
+					const ext = extname(path).toLowerCase().slice(1);
+					if (!fileExtensions.includes(ext)) return;
+				}
 				void this.processJob(job, { event, path });
 			});
 		}
@@ -268,7 +275,8 @@ export default class JobService extends BaseService {
 		params = params || {};
 
 		if (job.trigger === JobTrigger.Event) {
-			for (const eventType of job.triggerSpec) {
+			const eventTypes = job.triggerSpec as string[];
+			for (const eventType of eventTypes) {
 				logger.info(`Job #${job.id}: Processing events with type "${eventType}"...`);
 				for (let i = 0; i < 1000; i++) {
 					const events = await this.eventService.nextEvents(job.id, eventType);

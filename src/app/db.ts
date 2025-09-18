@@ -113,7 +113,13 @@ export enum JobTrigger {
 	FileSystem = 'fileSystem',
 }
 
-export type JobTriggerSpec = string | string[];
+export interface FileSystemTriggerSpec {
+	paths: string[];
+	depth?: number;
+	fileExtensions?: string[];
+}
+
+export type JobTriggerSpec = string | string[] | FileSystemTriggerSpec;
 
 export enum EventBodyType {
 	String = 1,
@@ -137,7 +143,6 @@ export interface Job {
 	script?: string;
 	enabled: boolean;
 	template?: string;
-	depth?: number;
 	params?: any;
 }
 
