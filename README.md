@@ -6,6 +6,8 @@
 
 The jobs can be defined based on the included templates or, for maximum flexibility, written in JavaScript. In that case you do any processing you want and dispatch the events in the format of your choice.
 
+This utility is mostly designed as an offline tool running on your own computer, as an alternative to simpler "cron" tasks and less heavy than IFTTT or Huginn when you just want simple scripts running under various conditions locally.
+
 ## Usage
 
 - Install `biniou` globally, for example using `npm install -g @laurent22/biniou`
@@ -30,6 +32,37 @@ A simple `job.json` file can be something like this:
 ```
 
 This is essentially a simple cron command. In some context, it is easier than using the system crontab (especially on macOS) since the above command will run in the same environment as your user, which means paths, env variables, etc. will be defined.
+
+### Running a job when file or folder is changed
+
+```json
+{
+	"type": "js",
+	"trigger": "fileSystem",
+	"triggerSpec": "/path/to/be/watched",
+	"depth": 0
+}
+```
+
+The above job will watch `/path/to/be/watched` for any change. It will not do so recursively since `depth` is set to `0`.
+
+Then the `index.js` file can be used to do something when a file is changed:
+
+```javascript
+exports = {
+	run: async (context) => {
+		const params = context.params;
+		const event = params.event;
+		const path = params.path;
+
+		if (event === 'add') {
+			console.info('A file has been added: ' + path);
+		}
+	},
+};
+```
+
+See the [Chokidar documentation](https://github.com/paulmillr/chokidar) for the list of supported events. The most useful ones are probably `add`, `change` and `unlink`.
 
 ### Dispatching events
 
@@ -131,12 +164,13 @@ The `job.json` file defines the basic job metadata:
 | Property         | Type              | Possible Values    | Description |
 |------------------|-------------------|--------------------|-------------|
 | `id`             | string            |                    | Unique identifier for the job. This is the name of the folder that contains job.json |
-| `type`           | `JobType`         | `'js'`, `'shell'`  | Type of the job. |
+| `type`           | `JobType`         | `'js'`, `'shell'`, `'fileSystem'`  | Type of the job. |
 | `trigger`        | `JobTrigger`      | `'cron'`, `'event'`| Defines when the job should be triggered. Can be based on a Cron schedule or an event. |
-| `triggerSpec`    | `JobTriggerSpec`  | string or string[]  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). |
+| `triggerSpec`    | `JobTriggerSpec`  | string or string[]  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). If the job type is `fileSystem`, it should be the path or paths to be watched.  |
 | `script`         | string            |                    | The script to be executed. Defaults to `index.js` for `js` jobs. Otherwise you need to provide the path to the shell command. |
 | `enabled`        | boolean           | `true` or `false`  | Indicates whether the job is enabled and should run. Defaults to `true` |
 | `template`       | string            |                    | Optional template name, if the job is based on a template. |
+| `depth`          | number            |                    | If the job type is `fileSystem` this can be used to specify how deep the folders should be watched. `undefined` means all folders recursively. `0` means only the current folder, `1` is one level deep, etc. |
 | `params`         | any               |                    | Additional parameters that can be used for the job execution. |
 
 ### The biniou API

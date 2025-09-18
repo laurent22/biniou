@@ -5,6 +5,7 @@ import joplinApi from './joplin/api';
 import fsApi from './fs/api';
 import * as nodemailer from 'nodemailer';
 import SMTPTransport = require('nodemailer/lib/smtp-transport');
+import { execCommand } from '@joplin/utils';
 
 const TurndownService = require('@joplin/turndown');
 const turndownPluginGfm = require('@joplin/turndown-plugin-gfm').gfm;
@@ -59,6 +60,10 @@ export default class JobSandbox {
 		if (!this.browser_) return;
 		await this.browser_.close();
 		this.browser_ = null;
+	}
+
+	public async execCommand(command: string | string[], options: any | null = null): Promise<string> {
+		return await execCommand(command, options);
 	}
 
 	public rssParser(options: any) {

@@ -110,6 +110,7 @@ export enum JobType {
 export enum JobTrigger {
     Cron = 'cron',
     Event = 'event',
+	FileSystem = 'fileSystem',
 }
 
 export type JobTriggerSpec = string | string[];
@@ -136,6 +137,7 @@ export interface Job {
 	script?: string;
 	enabled: boolean;
 	template?: string;
+	depth?: number;
 	params?: any;
 }
 

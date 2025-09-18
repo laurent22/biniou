@@ -780,7 +780,7 @@ __metadata:
     "@types/koa": ^2.11.0
     "@types/md5": ^2.1.33
     "@types/mustache": ^4.1.0
-    "@types/node": ^18.8.5
+    "@types/node": 22.10.10
     "@types/node-fetch": ^2.5.4
     "@types/nodemailer": ^6.4.0
     "@types/puppeteer": ^2.0.0
@@ -788,6 +788,7 @@ __metadata:
     "@types/yargs": ^13.0.4
     "@typescript-eslint/eslint-plugin": ^4.6.0
     "@typescript-eslint/parser": ^4.9.0
+    chokidar: ^4.0.3
     cron-parser: ^2.13.0
     dotenv: ^8.2.0
     env-paths: ^2.2.0
@@ -1294,10 +1295,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^18.8.5":
+"@types/node@npm:*":
   version: 18.8.5
   resolution: "@types/node@npm:18.8.5"
   checksum: f7d896f54743178e64c534c6da16f582505acf18904ecd0ee8541cb4bc1d429ba514e7ecfd5145221b71adbd6ae1ff72df082f667e56d056fcd1a719df948e08
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:22.10.10":
+  version: 22.10.10
+  resolution: "@types/node@npm:22.10.10"
+  dependencies:
+    undici-types: ~6.20.0
+  checksum: 4906f63dd1dcee6acc096b3336353e04a15746b639bbf4f585e3093851a17852a9ea0e302caef2d782c836adb3812e6eb3305b8783809320013a1d77798816b3
   languageName: node
   linkType: hard
 
@@ -2654,6 +2664,15 @@ __metadata:
     fsevents:
       optional: true
   checksum: 0c43e89cbf0268ef1e1f41ce8ec5233c7ba022c6f3282c2ef6530e351d42396d389a1148c5a040f291cf1f4083a4c6b2f51dad3f31c726442ea9a337de316bcf
+  languageName: node
+  linkType: hard
+
+"chokidar@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "chokidar@npm:4.0.3"
+  dependencies:
+    readdirp: ^4.0.1
+  checksum: a8765e452bbafd04f3f2fad79f04222dd65f43161488bb6014a41099e6ca18d166af613d59a90771908c1c823efa3f46ba36b86ac50b701c20c1b9908c5fe36e
   languageName: node
   linkType: hard
 
@@ -9173,6 +9192,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"readdirp@npm:^4.0.1":
+  version: 4.1.2
+  resolution: "readdirp@npm:4.1.2"
+  checksum: 3242ee125422cb7c0e12d51452e993f507e6ed3d8c490bc8bf3366c5cdd09167562224e429b13e9cb2b98d4b8b2b11dc100d3c73883aa92d657ade5a21ded004
+  languageName: node
+  linkType: hard
+
 "rechoir@npm:^0.6.2":
   version: 0.6.2
   resolution: "rechoir@npm:0.6.2"
@@ -10951,6 +10977,13 @@ __metadata:
     object.reduce: ^1.0.0
     undertaker-registry: ^1.0.0
   checksum: 4378e3e9d9e5d6f2ceeb81eff0ae5d7c63b9eaba000fae3f0177197f991aabef29104eabf5188622d38f2e3c58dc96cfd9c182b822b6f405dbf3f63f123389d5
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
   languageName: node
   linkType: hard
 

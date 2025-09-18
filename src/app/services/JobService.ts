@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as vm from 'vm';
-import { Job, Event, JobTrigger, JobResult } from '../db';
+import { Job, Event, JobTrigger, JobResult, JobType } from '../db';
 import BaseService from './BaseService';
 import EventService from './EventService';
 import JobModel from '../models/JobModel';
@@ -10,7 +10,7 @@ import JobResultModel from '../models/JobResultModel';
 import Logger from '../utils/Logger';
 import JobSandbox from './JobSandbox';
 import { execCommand } from '@joplin/utils';
-
+import chokidar, { ChokidarOptions } from 'chokidar';
 
 const schedule = require('node-schedule');
 
@@ -228,6 +228,25 @@ export default class JobService extends BaseService {
 					});
 				});
 			}
+		} else if (job.trigger === JobTrigger.FileSystem) {
+			if (!job.triggerSpec) throw new Error('Path must be specified in "triggerSpec" property');
+			if (job.type !== JobType.JavaScript) throw new Error('Only job type "js" is supported for filesystem');
+			const paths = typeof job.triggerSpec === 'string' ? [job.triggerSpec] : job.triggerSpec;
+
+			for (const path of paths) {
+				if (!(await fs.pathExists(path))) throw new Error(`Path does not exist: ${path}`);
+			}
+
+			const chokidarOptions: ChokidarOptions = {};
+
+			if (job.depth !== undefined) chokidarOptions.depth = job.depth;
+
+			logger.info('Watching path(s):', paths);
+			logger.info('With options:', chokidarOptions);
+
+			chokidar.watch(paths, chokidarOptions).on('all', (event, path) => {
+				void this.processJob(job, { event, path });
+			});
 		}
 	}
 
@@ -258,6 +277,8 @@ export default class JobService extends BaseService {
 					await this.execScript(job, { events, params });
 				}
 			}
+		} else if (job.trigger === JobTrigger.FileSystem) {
+			await this.execScript(job, { params });
 		} else {
 			await this.execScript(job, { params });
 		}
