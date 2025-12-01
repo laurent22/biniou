@@ -6,7 +6,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 git pull
-npm version patch
+# npm version patch
 npm publish
 
 NEW_VERSION=$(cat package.json | jq -r .version)
