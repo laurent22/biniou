@@ -130,7 +130,12 @@ export default abstract class BaseModel {
 		if (options.skipValidation !== true) object = await this.validate(object, { isNew: isNew, rules: options.validationRules ? options.validationRules : {} });
 
 		if (isNew) {
-			await this.db(this.tableName).insert(toSave);
+			try {
+				await this.db(this.tableName).insert(toSave);
+			} catch (error) {
+				// We throw a new error because the SQLite lib loses the stack trace
+				throw new Error(`Could not run SQL query: ${error.message}`);
+			}
 		} else {
 			const objectId: string = (toSave as WithUuid).id;
 			if (!objectId) throw new Error('Missing "id" property');

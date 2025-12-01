@@ -25,7 +25,7 @@ A simple `job.json` file can be something like this:
 ```json
 {
 	"type": "shell",
-	"script": "/path/to/you/command.sh",
+	"script": "/path/to/your/command.sh",
 	"trigger": "cron",
 	"triggerSpec": "0 * * * *"
 }
@@ -68,6 +68,20 @@ exports = {
 ```
 
 See the [Chokidar documentation](https://github.com/paulmillr/chokidar) for the list of supported events. The most useful ones are probably `add`, `change` and `unlink`.
+
+### Running a daemon
+
+You may want to have biniou starts a process once and let it run in the background - for example if you are launching a script that already handles watching files, or that needs to be running all the time watching some resource.
+
+In that case you can simply start it as `daemon`. Then it's up to you to handle how this script works - stdout and stderr will be printed to biniou's output but otherwise there will be no error handling or reporting.
+
+```json
+{
+	"type": "shell",
+	"script": "/path/to/your/daemon.sh",
+	"trigger": "daemon"
+}
+```
 
 ### Dispatching events
 
@@ -169,8 +183,8 @@ The `job.json` file defines the basic job metadata:
 | Property         | Type              | Possible Values    | Description |
 |------------------|-------------------|--------------------|-------------|
 | `id`             | string            |                    | Unique identifier for the job. This is the name of the folder that contains job.json |
-| `type`           | `JobType`         | `'js'`, `'shell'`, `'fileSystem'`  | Type of the job. |
-| `trigger`        | `JobTrigger`      | `'cron'`, `'event'`| Defines when the job should be triggered. Can be based on a Cron schedule or an event. |
+| `type`           | `JobType`         | `'js'`, `'shell'`  | Type of the job. |
+| `trigger`        | `JobTrigger`      | `'cron'`, `'event'`, `'fileSystem'`, `'daemon'` | Defines when the job should be triggered. |
 | `triggerSpec`    | `JobTriggerSpec`  | string, string[] or FileSystemTriggerSpec  | Specification of the trigger. It can be a single string or an array of strings (e.g., Cron expressions or event identifiers). If the job type is `fileSystem`, it should be a `FileSystemTriggerSpec` (see below).  |
 | `script`         | string            |                    | The script to be executed. Defaults to `index.js` for `js` jobs. Otherwise you need to provide the path to the shell command. |
 | `enabled`        | boolean           | `true` or `false`  | Indicates whether the job is enabled and should run. Defaults to `true` |

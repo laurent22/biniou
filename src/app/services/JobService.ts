@@ -20,6 +20,8 @@ const logger = Logger.create('JobService');
 interface ExecScriptOptions {
 	events?: Event[];
 	params?: any;
+	wait?: boolean;
+	quiet?: boolean;
 }
 
 interface JobContext {
@@ -108,6 +110,8 @@ export default class JobService extends BaseService {
 		options = {
 			events: [],
 			params: {},
+			wait: true,
+			quiet: true,
 			...options,
 		};
 
@@ -117,7 +121,12 @@ export default class JobService extends BaseService {
 			let processingError: any = null;
 			try {
 				logger.info(`Job #${job.id}: Starting...`);
-				result = await execCommand(job.script, { quiet: true });
+
+				if (options.wait) {
+					result = await execCommand(job.script, { quiet: options.quiet });
+				} else {
+					result = void execCommand(job.script, { quiet: options.quiet });
+				}
 				success = true;
 				logger.info(`Job #${job.id}: Success`);
 			} catch (error) {
@@ -229,6 +238,8 @@ export default class JobService extends BaseService {
 					});
 				});
 			}
+		} else if (job.trigger === JobTrigger.Daemon) {
+			void this.processJob(job);
 		} else if (job.trigger === JobTrigger.FileSystem) {
 			if (!job.triggerSpec) throw new Error('Path must be specified in "triggerSpec" property');
 			if (job.type !== JobType.JavaScript) throw new Error('Only job type "js" is supported for filesystem');
@@ -288,7 +299,14 @@ export default class JobService extends BaseService {
 		} else if (job.trigger === JobTrigger.FileSystem) {
 			await this.execScript(job, { params });
 		} else {
-			await this.execScript(job, { params });
+			const execScriptOptions: ExecScriptOptions = {};
+
+			if (job.trigger === JobTrigger.Daemon) {
+				execScriptOptions.wait = false;
+				execScriptOptions.quiet = false;
+			}
+
+			await this.execScript(job, { ...execScriptOptions, params });
 		}
 	}
 

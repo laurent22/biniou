@@ -39,7 +39,7 @@ export default class EventService extends BaseService {
 			job_id: jobId,
 			type: eventType,
 			body_type: bodyType,
-			body: eventBodySerialized,
+			body: eventBodySerialized || '',
 			created_time: now,
 			updated_time: now,
 			hash: hash,

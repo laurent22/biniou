@@ -111,6 +111,7 @@ export enum JobTrigger {
     Cron = 'cron',
     Event = 'event',
 	FileSystem = 'fileSystem',
+	Daemon = 'daemon',
 }
 
 export interface FileSystemTriggerSpec {
